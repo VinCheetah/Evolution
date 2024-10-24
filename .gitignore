@@ -1,3 +1,9 @@
 *.pyc
 *~
 *.swp
+
+1.0.0/
+GeneticSalesMan/
+SalesMan2/
+evo.log
+test.py
