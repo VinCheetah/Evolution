@@ -7,3 +7,4 @@ GeneticSalesMan/
 SalesMan2/
 evo.log
 test.py
+base/utils/default_options.py
