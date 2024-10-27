@@ -6,7 +6,7 @@ import numpy as np
 import time
 class PermuCrosser(BaseCrosser):
 
-    _component_name: str = "Crosser"
+    _component_type: str = "Permu"
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)

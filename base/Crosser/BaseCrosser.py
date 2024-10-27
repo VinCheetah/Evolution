@@ -13,6 +13,7 @@ class BaseCrosser(BaseComponent, AbstractCrosser):
         options.update(kwargs)
         BaseComponent.__init__(self, options)
         self._cross_prob: float = options.cross_prob
+        self._crossed: int = 0
 
     def num_crossed_individuals(self):
         return self._crossed
