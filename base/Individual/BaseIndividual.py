@@ -49,6 +49,9 @@ class BaseIndividual(BaseComponent, AbstractIndividual):
         self._id = new_id
         self._id_counter -= 1
 
+    def __len__(self):
+        raise NotImplementedError
+
     @classmethod
     def from_data(cls, options, data, origin: list, set_id=None) -> "BaseIndividual":
         new_ind = cls(options)

@@ -33,6 +33,7 @@ class BasePopulation(BaseComponent, AbstractPopulation):
         self._sorted: bool = False
         self._selected: list[BaseIndividual]
         self._population: list[BaseIndividual]
+        self._immigrated: int = 0
         self._init_population()
 
     def update(self, selection):

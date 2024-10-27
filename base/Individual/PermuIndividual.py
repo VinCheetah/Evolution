@@ -28,7 +28,7 @@ class PermuIndividual(BaseIndividual):
         return self._permutation[index]
 
     def _get_data(self) -> dict:
-        return super()._get_data() | {"permutation": self._permutation}
+        return super()._get_data() | {"permutation": self._permutation.copy()}
 
     def _init(self, data):
         super()._init(data)
@@ -38,9 +38,11 @@ class PermuIndividual(BaseIndividual):
         else:
             assert len(permu) == self._size, f"Permutation should be of size {self._size} but {permu} has size {len(permu)}"
         self._permutation = permu if permu is not None else np.random.permutation(self._size)
+        self._assert_is_perm()
 
-    def swap(self, idx1, idx2):
+    def swap(self, idx1, idx2) -> bool:
         self._permutation[idx1], self._permutation[idx2] = self._permutation[idx2], self._permutation[idx1]
+        return True
 
     def move_element(self, idx: int, new_pos: int) -> bool:
         """

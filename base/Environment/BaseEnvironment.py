@@ -43,6 +43,7 @@ class BaseEnvironment(BaseComponent, AbstractEnvironment):
         self._init_components(options)
 
         self.graphic = options.graphic(self, options)
+        self.interface = options.interface(self, options)
 
         self._timeout: int = options.timeout
         self._max_gen: int = options.max_gen
