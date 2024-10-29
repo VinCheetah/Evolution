@@ -21,12 +21,7 @@ class PermuCrosserPMX(MultiPointCrosser, BaseCrosser):
     def _cross_points(self, data: dict, ind2: BaseIndividual, *idx) -> dict:
         assert isinstance(ind2, PermuIndividual), f"ind2 is not a PermuIndividual but a {type(ind2)}"
         idx1, idx2 = idx
-        debug = False
         permu = data["permutation"]
-        if debug:
-            print(idx1, idx2)
-            print(permu)
-            print(ind2._permutation)
 
         indices = np.empty_like(permu)
         indices[permu] = np.arange(len(permu))
@@ -36,6 +31,4 @@ class PermuCrosserPMX(MultiPointCrosser, BaseCrosser):
             if permu[i] != ind2._permutation[i]:
                 idx = indices[ind2._permutation[i]]
                 permu[i], permu[idx] = permu[idx], permu[i]
-        if debug:
-            print(permu)
         return {"permutation": permu}
