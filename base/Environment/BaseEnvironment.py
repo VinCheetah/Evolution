@@ -24,6 +24,13 @@ class BaseEnvironment(BaseComponent, AbstractEnvironment):
 
     def __init__(self, options, **kwargs):
 
+        self._active_selection: bool = True
+        self._active_migration: bool = True
+        self._active_mutation: bool = True
+        self._active_cross: bool = True
+        self._active_elite: bool = True
+        self._active_graphic: bool = True
+        self._active_interface: bool = False
 
         self.random_seed: int = options.random_seed
         random.seed(self.random_seed)
@@ -42,18 +49,13 @@ class BaseEnvironment(BaseComponent, AbstractEnvironment):
 
         self._init_components(options)
 
-        self.graphic = options.graphic(self, options)
-        self.interface = options.interface(self, options)
+        if self._active_graphic:
+            self.graphic = options.graphic(self, options)
+        if self._active_interface:
+            self.interface = options.interface(self, options)
 
         self._timeout: int = options.timeout
         self._max_gen: int = options.max_gen
-
-        self._active_selection: bool = True
-        self._active_migration: bool = True
-        self._active_mutation: bool = True
-        self._active_cross: bool = True
-        self._active_elite: bool = True
-        self._active_graphic: bool = True
 
         self._create_elite: bool = options.create_elite
         self._create_report: bool = False
@@ -61,6 +63,7 @@ class BaseEnvironment(BaseComponent, AbstractEnvironment):
         self._evolution_started: bool = False
         self._evolution_over: bool = False
         self._evo_time: float = 0.
+        self._extra_time: float = 0.
 
         self._n_gen: int = 0
 
@@ -86,20 +89,29 @@ class BaseEnvironment(BaseComponent, AbstractEnvironment):
     def evolve(self):
         self.init_evolution()
         self.evaluate()
+        start_extra = time()
         for _ in range(self._max_gen):
             if self.time_since_start > self._timeout > 0:
                 break
+            end_extra = time()
+            self.set_extra_time(end_extra - start_extra)
             self.new_generation()
+            start_extra = time()
             self.update_graphic()
             self.log_report()
         self.end_evolution()
+
+    def set_extra_time(self, extra_time):
+        self._extra_time = extra_time
+
 
     def init_evolution(self):
         self._evolution_started = True
         self._evolution_over = False
         self._start_time = time()
 
-        self.graphic.init_evolution()
+        if self._active_graphic:
+            self.graphic.init_evolution()
 
     def end_evolution(self):
         self._evolution_started = False
@@ -110,7 +122,8 @@ class BaseEnvironment(BaseComponent, AbstractEnvironment):
         self.log("info", f"Evolution is finished")
         self.log("info", f"Total time: {self._evo_time:.2f}s")
 
-        self.graphic.end_evolution()
+        if self._active_graphic:
+            self.graphic.end_evolution()
 
     @BaseComponent.record_time
     def new_generation(self):
@@ -126,7 +139,7 @@ class BaseEnvironment(BaseComponent, AbstractEnvironment):
         self._data_report = {"general": {"n_gen": self._n_gen,
                                  "time": int(self.time_since_start*10)/10,},
 
-                     "top": int(self.elite.best.fitness*100)/100,
+                     "top": self.elite.best.fitness,
                      "pop": int(self.population.best.fitness*100)/100,
                      "mean": int(np.mean([ind.fitness for ind in self.population])*100)/100,
 
@@ -145,7 +158,7 @@ class BaseEnvironment(BaseComponent, AbstractEnvironment):
 
     def _get_str_report(self):
         report = ""
-        space = 5
+        space = 7
         for key, value in self._data_report.items():
             if isinstance(value, dict):
                 report += "\t"
