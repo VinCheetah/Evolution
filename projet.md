@@ -8,9 +8,9 @@ Ce projet a pour but de créer une pseudo librairie python permettant d'utiliser
 
 ### Structure
 
-- [ ] Créer un dépôt sur GitHub
+- [x] Créer un dépôt sur GitHub
 - [x] Créer un fichier `projet.md`
-- [ ] Créer un fichier `README.md`
+- [x] Créer un fichier `README.md`
 - [ ] Créer un fichier `requirements.txt`
 - [ ] Commenter le code proprement
 
@@ -20,7 +20,7 @@ Ce projet a pour but de créer une pseudo librairie python permettant d'utiliser
 - [ ] Intégrer les représentations graphiques dans une interface (potentiellement tkinter)
 - [ ] Mettre en place la possibilité de varier les paramètres des algorithmes en temps réél (avec trace des modifications pour reproduction)
 Implique la mise en place d'une "reproduction" d'évolution avec un format précis
-- [ ] Développer le type chaîne binaire classique
+- [x] Développer le type chaîne binaire classique
 - [x] Développer le type permutation
 - [ ] Développer le type arbre
 - [ ] Développer le type graphe
@@ -33,7 +33,7 @@ Avec mélanges dans des espaces dédiés pour préserver la diversité et la sp�
 
 ### Fix
 
-- [ ] Réparer le selecteur tournoi
+- [x] Réparer le selecteur tournoi
 
 ## Projets à tester
 
