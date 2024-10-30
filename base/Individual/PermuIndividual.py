@@ -20,9 +20,11 @@ class PermuIndividual(BaseIndividual):
     def _create(cls, options) -> "PermuIndividual":
         return cls(options)
 
-
     def __len__(self) -> int:
         return self._size
+
+    def __setitem__(self, index, value) -> None:
+        self._permutation[index] = value
 
     def __getitem__(self, index: int) -> int:
         return self._permutation[index]

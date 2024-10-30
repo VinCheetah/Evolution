@@ -28,7 +28,6 @@ class BaseGraphic(BaseComponent, AbstractGraphic):
         if self._num_graphs > 0 and not self._stop_graph:
             self._init_graph()
 
-
         self._generations: list[int] = []
 
         if self._metrics_graph:
@@ -44,6 +43,7 @@ class BaseGraphic(BaseComponent, AbstractGraphic):
             self._cross_time_data: list[float] = []
             self._selection_time_data: list[float] = []
             self._generation_time_data: list[float] = []
+            self._extra_time_data: list[float] = []
             self._time_ymax: float = 0
 
     def _init_graph(self):
@@ -57,49 +57,37 @@ class BaseGraphic(BaseComponent, AbstractGraphic):
             self._set_dic_asx('metrics', i)
             i += 1
             ax = self.get_ax('metrics')
+
+            #ax.set_yscale('log')
             ax.set_title('Metrics')
             self._elite_evo, = ax.plot([], label='Top Elite')
             self._pop_evo, = ax.plot([], label="Top Population")
             self._mean_evo, = ax.plot([], label="Mean Population")
             self._selected_evo, = ax.plot([], label="Mean Selected Population")
-            ax.legend()
 
         if self._best_elite:
             self._set_dic_asx('elite', i)
             i += 1
             ax = self.get_ax('elite')
+            self.env.individual.init_plot(ax)
             ax.set_title('Best elite')
-            self._elite_repr, = ax.plot([], label="Elite Best")
-            ax.set_xlim(0, 1)
-            ax.set_ylim(0, 1)
 
             self._prev_elite_id = - 1
-
-            X = [x[0] for x in self.env.evaluator.cities]
-            Y = [x[1] for x in self.env.evaluator.cities]
-            ax.scatter(X, Y, color='blue')
-
 
         if self._best_pop:
             self._set_dic_asx('pop', i)
             i += 1
             ax = self.get_ax('pop')
+            self.env.individual.init_plot(ax)
             ax.set_title('Best population')
-            self._pop_repr, = ax.plot([], label="Population Best")
-            ax.set_xlim(0, 1)
-            ax.set_ylim(0, 1)
-
             self._prev_pop_id = -1
-
-            X = [x[0] for x in self.env.evaluator.cities]
-            Y = [x[1] for x in self.env.evaluator.cities]
-            ax.scatter(X, Y, color='blue')
 
         if self._time_gestion:
             self._set_dic_asx('time', i)
             i += 1
             ax = self.get_ax('time')
             ax.set_title('Time gestion')
+            self._extra_time, = ax.plot([], label='Extra')
             self._generation_time, = ax.plot([], label='Generation')
             self._evaluation_time, = ax.plot([], label='Evaluation')
             self._cross_time, = ax.plot([], label='Cross-over')
@@ -162,7 +150,8 @@ class BaseGraphic(BaseComponent, AbstractGraphic):
         self._cross_time_data.append(self.env.crosser._duration + self._mutation_time_data[-1])
         self._evaluation_time_data.append(self.env.evaluator._duration + self._cross_time_data[-1])
         self._generation_time_data.append(self.env._duration)
-        self._time_ymax = max(self._time_ymax, self._generation_time_data[-1])
+        self._extra_time_data.append(self._generation_time_data[-1] + self.env._extra_time)
+        self._time_ymax = max(self._time_ymax, self._extra_time_data[-1])
 
     def update_graph_metrics(self):
         ax = self.get_ax('metrics')
@@ -177,23 +166,17 @@ class BaseGraphic(BaseComponent, AbstractGraphic):
         if self._prev_elite_id == -1 or self._prev_elite_id != self.env.elite.best._id:
             self._prev_elite_id = self.env.elite.best._id
             ax = self.get_ax('elite')
-            X, Y = self.env.elite.best.get_graph_repr()
-            self._elite_repr.set_xdata(X)
-            self._elite_repr.set_ydata(Y)
-            ax.autoscale_view()
+            self.env.elite.best.plot(ax)
 
     def update_graph_pop(self):
         if self._prev_pop_id == -1 or self._prev_pop_id != self.env.population.best._id:
             self._prev_pop_id = self.env.population.best._id
             ax = self.get_ax('pop')
-            X, Y = self.env.population.best.get_graph_repr()
-            self._pop_repr.set_xdata(X)
-            self._pop_repr.set_ydata(Y)
-            ax.autoscale_view()
+            self.env.population.best.plot(ax)
 
     def update_time_gestion(self):
         ax = self.get_ax('time')
-        for metric in ["generation", "cross", "mutation", "selection", "evaluation"]:
+        for metric in ["extra", "generation", "cross", "mutation", "selection", "evaluation"]:
             getattr(self, f"_{metric}_time").set_xdata(self._generations[-self._max_gen_display:])
             getattr(self, f"_{metric}_time").set_ydata(getattr(self, f"_{metric}_time_data")[-self._max_gen_display:])
         ax.relim()
