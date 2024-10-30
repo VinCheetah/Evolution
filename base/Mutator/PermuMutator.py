@@ -2,15 +2,7 @@ from base.Mutator.BaseMutator import BaseMutator
 from base.Individual.PermuIndividual import PermuIndividual
 import numpy as np
 
-# PermuMutator Different modes (size 80, 1500 gen, 0.4 mut, 0.8 cross, 100 pop, 12345678 seed, 0.6 select ratio, 3 tourney size)
-# 7.679
-# 8.546
-# 7.787
-# 7.382
-#
 
-# 200 indiv
-# 14.205
 class PermuMutator(BaseMutator):
 
     mutation_modes = ["multi", "single", "swap", "reverse", "shuffle"]
