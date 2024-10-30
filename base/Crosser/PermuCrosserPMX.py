@@ -11,7 +11,7 @@ class PermuCrosserPMX(MultiPointCrosser, BaseCrosser):
     _component_type: str = "PMX"
 
     def __init__(self, options, **kwargs):
-        options["num_points"] = 2
+        options.num_points = 2
         options.update(kwargs)
 
         MultiPointCrosser.__init__(self, options)
@@ -28,7 +28,8 @@ class PermuCrosserPMX(MultiPointCrosser, BaseCrosser):
 
         for i in range(idx1, idx1+abs(idx2-idx1)+1):
             i = i % len(permu)
-            if permu[i] != ind2._permutation[i]:
-                idx = indices[ind2._permutation[i]]
+            if permu[i] != ind2[i]:
+                idx = indices[ind2[i]]
                 permu[i], permu[idx] = permu[idx], permu[i]
-        return {"permutation": permu}
+        data["permutation"] = permu
+        return data
