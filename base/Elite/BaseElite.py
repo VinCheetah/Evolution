@@ -19,19 +19,14 @@ class BaseElite(BaseComponent, AbstractElite):
         self._elite_scores: npt.NDArray[np.float_] = np.array([])
 
     def update(self, population: BasePopulation) -> bool:
-        prev_top = None if len(self)==0 else self.best
+        prev_top = None if len(self) == 0 else self.best
         population.sort()
         outsiders_scores = np.array([self._compute_score(ind) for ind in population])
         complete_scores = np.concatenate((outsiders_scores, self._elite_scores))
         sorted_idx = population._argsort_scores(complete_scores)
-        #print("scores: ", complete_scores)
-        #print(sorted_idx)
 
         self._elite = [(population[i].copy() if i < population.size else self[i-population.size]) for i in sorted_idx[:self._elite_size]]
         self._elite_scores = complete_scores[sorted_idx[:self._elite_size]]
-        #print("elite scores: ", self._elite_scores)
-        #print("elite fitness: ", [ind.fitness for ind in self._elite])
-        # Fais une assert pour vérifier que le scores de l'elite n'augmente pas d'une mise à jour à l'autre
         assert prev_top is None or self.best.fitness <= prev_top.fitness, f"Elite score decreased from {prev_top.fitness} to {self.best.fitness}"
         for i in range(self._elite_size):
             assert self._elite_scores[i] == self._elite[i].fitness, f"Elite n°{i} has score of {self._elite_scores[i]}, but score n°{i} is {self._compute_score(self._elite[i])}"
