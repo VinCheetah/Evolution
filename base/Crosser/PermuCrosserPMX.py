@@ -1,7 +1,7 @@
 from base.Crosser.BaseCrosser import BaseCrosser
 from base.Crosser.MultiPointCrosser import MultiPointCrosser
 from base.Individual.BaseIndividual import BaseIndividual
-from base.Individual.PermuIndividual import PermuIndividual
+from base.Individual.Permutation.PermuIndividual import PermuIndividual
 import random as rd
 import numpy as np
 
@@ -11,9 +11,8 @@ class PermuCrosserPMX(MultiPointCrosser, BaseCrosser):
     _component_type: str = "PMX"
 
     def __init__(self, options, **kwargs):
-        options.num_points = 2
         options.update(kwargs)
-
+        options.num_points = 2
         MultiPointCrosser.__init__(self, options)
         BaseCrosser.__init__(self, options)
 

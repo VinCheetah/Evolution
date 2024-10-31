@@ -1,12 +1,11 @@
 from base.Environment.AbstractEnvironment import AbstractEnvironment
-from base.Component.BaseComponent import BaseComponent
 from base.Individual.BaseIndividual import BaseIndividual
+from base.Population.BasePopulation import BasePopulation
+from base.Component.BaseComponent import BaseComponent
 from base.Evaluator.BaseEvaluator import BaseEvaluator
 from base.Selector.BaseSelector import BaseSelector
 from base.Mutator.BaseMutator import BaseMutator
 from base.Crosser.BaseCrosser import BaseCrosser
-from base.Individual.BaseIndividual import BaseIndividual
-from base.Population.BasePopulation import BasePopulation
 from base.Elite.BaseElite import BaseElite
 
 import matplotlib.pyplot as plt
@@ -15,11 +14,12 @@ import numpy as np
 import random
 import sys
 import os
-from functools import wraps
 
 
 class BaseEnvironment(BaseComponent, AbstractEnvironment):
 
+    _component_name: str = "Environment"
+    _component_type: str = "Base"
     _components: list = ["crosser", "mutator", "evaluator", "selector", "population", "elite"]
 
     def __init__(self, options, **kwargs):
@@ -94,16 +94,15 @@ class BaseEnvironment(BaseComponent, AbstractEnvironment):
             if self.time_since_start > self._timeout > 0:
                 break
             end_extra = time()
-            self.set_extra_time(end_extra - start_extra)
+            self._set_extra_time(end_extra - start_extra)
             self.new_generation()
             start_extra = time()
             self.update_graphic()
             self.log_report()
         self.end_evolution()
 
-    def set_extra_time(self, extra_time):
+    def _set_extra_time(self, extra_time):
         self._extra_time = extra_time
-
 
     def init_evolution(self):
         self._evolution_started = True
@@ -137,24 +136,22 @@ class BaseEnvironment(BaseComponent, AbstractEnvironment):
 
     def log_report(self):
         self._data_report = {"general": {"n_gen": self._n_gen,
-                                 "time": int(self.time_since_start*10)/10,},
+                                         "time": int(self.time_since_start*10)/10,},
 
-                     "top": self.elite.best.fitness,
-                     "pop": int(self.population.best.fitness*100)/100,
-                     "mean": int(np.mean([ind.fitness for ind in self.population])*100)/100,
+                             "top": self.elite.best.fitness,
+                             "pop": int(self.population.best.fitness*100)/100,
+                             "mean": int(np.mean([ind.fitness for ind in self.population])*100)/100,
 
-                     "population": {"size": self.population.size,
-                                    "immi": self.population.num_immigrated_individuals(),
-                                    "mut": self.mutator.num_mutated_individuals(),
-                                    "cros": self.crosser.num_crossed_individuals(),
-                                    "eval": self.evaluator.num_evaluated_individuals(),}
+                             "population": {"size": self.population.size,
+                                            "immi": self.population.num_immigrated_individuals(),
+                                            "mut": self.mutator.num_mutated_individuals(),
+                                            "cros": self.crosser.num_crossed_individuals(),
+                                            "eval": self.evaluator.num_evaluated_individuals(),}
         }
         self.log("info", f"New report : {self._data_report}")
         self.log("info", f"Generation n°{self._n_gen} is completed")
         self.log("info", f"Time since start: {self.time_since_start:.2f}s")
-
         print(self._get_str_report())
-
 
     def _get_str_report(self):
         report = ""
@@ -226,6 +223,5 @@ class BaseEnvironment(BaseComponent, AbstractEnvironment):
                 "size_population": self.population.size,
                 "time_since_start": self.time_since_start,
                 "n_gen": self._n_gen,
-
             }
         }

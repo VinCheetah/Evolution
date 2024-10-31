@@ -18,13 +18,12 @@ class BaseGraphic(BaseComponent, AbstractGraphic):
         self._stop_graph: bool = options.stop_graph
         self._end_graph: bool = options.end_graph
         self._metrics_graph: bool = options.metrics_graph
-        self._best_elite: bool = options.best_elite & options.elite_size > 0 & options.has_graph_repr
+        self._best_elite: bool = options.best_elite & (options.elite_size > 0) & options.has_graph_repr
         self._best_pop: bool = options.best_pop & options.has_graph_repr
         self._time_gestion: bool = options.time_gestion
         self._num_graphs: int = self._metrics_graph + self._best_elite + self._best_pop + self._time_gestion
         self._dic_axs: dict[str, tuple[int] | tuple[int, int]] = {}
         self._max_gen_display: int = options.max_gen_display
-
         if self._num_graphs > 0 and not self._stop_graph:
             self._init_graph()
 
@@ -69,16 +68,15 @@ class BaseGraphic(BaseComponent, AbstractGraphic):
             self._set_dic_asx('elite', i)
             i += 1
             ax = self.get_ax('elite')
-            self.env.individual.init_plot(ax)
+            self.env.evaluator.init_plot(ax)
             ax.set_title('Best elite')
-
             self._prev_elite_id = - 1
 
         if self._best_pop:
             self._set_dic_asx('pop', i)
             i += 1
             ax = self.get_ax('pop')
-            self.env.individual.init_plot(ax)
+            self.env.evaluator.init_plot(ax)
             ax.set_title('Best population')
             self._prev_pop_id = -1
 
@@ -106,7 +104,6 @@ class BaseGraphic(BaseComponent, AbstractGraphic):
     def get_ax(self, type):
         if self._num_graphs == 1:
             return self.axs
-
         return self.axs[*self._dic_axs[type]]
 
     def update(self):
@@ -166,13 +163,15 @@ class BaseGraphic(BaseComponent, AbstractGraphic):
         if self._prev_elite_id == -1 or self._prev_elite_id != self.env.elite.best._id:
             self._prev_elite_id = self.env.elite.best._id
             ax = self.get_ax('elite')
-            self.env.elite.best.plot(ax)
+            best = self.env.elite.best
+            self.env.evaluator.plot(ax, best)
 
     def update_graph_pop(self):
         if self._prev_pop_id == -1 or self._prev_pop_id != self.env.population.best._id:
             self._prev_pop_id = self.env.population.best._id
             ax = self.get_ax('pop')
-            self.env.population.best.plot(ax)
+            best = self.env.population.best
+            self.env.evaluator.plot(ax, best)
 
     def update_time_gestion(self):
         ax = self.get_ax('time')

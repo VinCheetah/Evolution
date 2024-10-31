@@ -1,7 +1,7 @@
 from base.Crosser.BaseCrosser import BaseCrosser
 from base.Crosser.MultiPointCrosser import MultiPointCrosser
 from base.Individual.BaseIndividual import BaseIndividual
-from base.Individual.ChainIndividual import ChainIndividual
+from base.Individual.Chain.ChainIndividual import ChainIndividual
 import numpy as np
 
 
@@ -10,9 +10,8 @@ class ChainCrosser(MultiPointCrosser, BaseCrosser):
     _component_type = "Chain"
 
     def __init__(self, options, **kwargs):
-        options.num_points = 2
         options.update(kwargs)
-
+        options.num_points = 2
         MultiPointCrosser.__init__(self, options)
         BaseCrosser.__init__(self, options)
 

@@ -1,8 +1,6 @@
-
-
 from typing import ChainMap
 from base.Mutator.BaseMutator import BaseMutator
-from base.Individual.ChainIndividual import ChainIndividual
+from base.Individual.Chain.ChainIndividual import ChainIndividual
 import numpy as np
 import builtins
 

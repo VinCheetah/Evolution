@@ -6,6 +6,10 @@ class Options(dict):
         super(Options, self).__init__(*args, **kwargs)
         self.__dict__ = self
 
+    def assert_subtype(self, cls, key):
+        if not issubclass(self.__getattr__(key), cls):
+            self.__setattr__(key, cls)
+
     def __setattr__(self, key, value):
         self[key] = value
 

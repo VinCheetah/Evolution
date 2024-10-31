@@ -16,9 +16,9 @@ class BaseElite(BaseComponent, AbstractElite):
         BaseComponent.__init__(self, options)
         self._elite_size: int = options.elite_size
         self._elite: list[BaseIndividual] = []
-        self._elite_scores: npt.NDArray[np.float_] = np.array([])
+        self._elite_scores: npt.NDArray = np.array([])
 
-    def update(self, population: BasePopulation) -> bool:
+    def update(self, population: BasePopulation):
         prev_top = None if len(self) == 0 else self.best
         population.sort()
         outsiders_scores = np.array([self._compute_score(ind) for ind in population])
@@ -30,7 +30,6 @@ class BaseElite(BaseComponent, AbstractElite):
         assert prev_top is None or self.best.fitness <= prev_top.fitness, f"Elite score decreased from {prev_top.fitness} to {self.best.fitness}"
         for i in range(self._elite_size):
             assert self._elite_scores[i] == self._elite[i].fitness, f"Elite n°{i} has score of {self._elite_scores[i]}, but score n°{i} is {self._compute_score(self._elite[i])}"
-        return self.best != prev_top
 
     def __getitem__(self, idx) -> BaseIndividual:
         return self._elite[idx]

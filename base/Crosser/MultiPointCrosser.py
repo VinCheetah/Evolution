@@ -1,7 +1,7 @@
 from base.Individual.BaseIndividual import BaseIndividual
-
 from abc import abstractmethod
 import numpy as np
+
 
 class MultiPointCrosser:
 
@@ -10,7 +10,6 @@ class MultiPointCrosser:
 
         self._num_points: int = options.num_points
         self._num_cross: int = options.num_cross
-
 
     def _cross(self, ind1: BaseIndividual, ind2: BaseIndividual) -> dict:
         """
@@ -25,4 +24,8 @@ class MultiPointCrosser:
 
     @abstractmethod
     def _cross_points(self, data: dict, ind2: BaseIndividual, *idx) -> dict:
+        """
+        Cross two individuals at given points.
+        First individual is given as a dictionnary of data.
+        """
         pass

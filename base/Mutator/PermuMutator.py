@@ -1,5 +1,5 @@
 from base.Mutator.BaseMutator import BaseMutator
-from base.Individual.PermuIndividual import PermuIndividual
+from base.Individual.Permutation.PermuIndividual import PermuIndividual
 import numpy as np
 
 

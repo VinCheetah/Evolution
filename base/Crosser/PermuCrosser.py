@@ -1,5 +1,5 @@
 from base.Crosser.BaseCrosser import BaseCrosser
-from base.Individual.PermuIndividual import PermuIndividual
+from base.Individual.Permutation.PermuIndividual import PermuIndividual
 import random as rd
 import numpy as np
 

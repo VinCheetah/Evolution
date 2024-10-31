@@ -1,6 +1,5 @@
-from base.Individual.ChainIndividual import ChainIndividual
 from base.Mutator.ChainMutator import ChainMutator
-from base.Individual.BinaryChainIndividual import BinaryChainIndividual
+from base.Individual.Chain.BinaryChainIndividual import BinaryChainIndividual
 import numpy as np
 
 
