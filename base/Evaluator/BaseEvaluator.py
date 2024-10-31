@@ -3,7 +3,6 @@ from base.Evaluator.AbstractEvaluator import AbstractEvaluator
 from base.Population.BasePopulation import BasePopulation
 
 
-
 class BaseEvaluator(BaseComponent, AbstractEvaluator):
 
     _component_name: str = "Evaluator"
@@ -12,7 +11,6 @@ class BaseEvaluator(BaseComponent, AbstractEvaluator):
     def __init__(self, options, **kwargs):
         options.update(kwargs)
         BaseComponent.__init__(self, options)
-
         self._timeout: int = self._options.eval_timeout
         self._evaluated: int = 0
 

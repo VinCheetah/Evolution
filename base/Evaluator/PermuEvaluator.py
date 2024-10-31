@@ -1,5 +1,5 @@
 from base.Evaluator.SingleEvaluator import SingleEvaluator
-from base.Individual.PermuIndividual import PermuIndividual
+from base.Individual.Permutation.PermuIndividual import PermuIndividual
 import numpy as np
 import numpy.typing as npt
 
@@ -10,9 +10,9 @@ class PermuEvaluator(SingleEvaluator):
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)
-        super().__init__(options)
+        SingleEvaluator.__init__(self, options)
         self._size: int = options.individual_size
-        self.weights: npt.NDArray[np.float_] = options.weights if options.weights is not None else np.random.rand(self._size, self._size)
+        self.weights: npt.NDArray = options.weights if options.weights is not None else np.random.rand(self._size, self._size)
 
     def _evaluate(self, individual: PermuIndividual) -> float:
         tot = 0.

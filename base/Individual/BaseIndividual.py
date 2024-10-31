@@ -97,6 +97,23 @@ class BaseIndividual(BaseComponent, AbstractIndividual):
             self._err_eval = err_eval
             self.log(level="debug", msg=f"Evaluation error: {err_eval}")
 
+    def _get_data(self) -> dict:
+        return {"origin": self._origin}
+
+    def copy(self):
+        copy = self.from_data(self._options, deepcopy(self._get_data()), self._origin, set_id=self._id)
+        copy._fitness = self._fitness
+        copy._eval_time = self._eval_time
+        copy._survived_gen = self._survived_gen
+        copy._gen_birth = self._gen_birth
+        copy._is_evaluated = self._is_evaluated
+        copy._err_eval = self._err_eval
+        copy._is_valid = self._is_valid
+        return copy
+
+    def report(self) -> str:
+        return f"Individual {self._id} : {self.fitness:.3f} - from {self._origin} - {self._survived_gen} generations survived - history : {' <- '.join(self._origin[::-1])}"
+
     def set_curr_origin(self, origin: str):
         assert self._origin[-1] == "void", "Origin already set"
         self._origin[-1] = origin
@@ -118,23 +135,3 @@ class BaseIndividual(BaseComponent, AbstractIndividual):
 
     def __ge__(self, other):
         return self.fitness >= other.fitness
-
-    def _get_data(self) -> dict:
-        return {"origin": self._origin}
-
-    def copy(self):
-        copy = self.from_data(self._options, deepcopy(self._get_data()), self._origin, set_id=self._id)
-        copy._fitness = self._fitness
-        copy._eval_time = self._eval_time
-        copy._survived_gen = self._survived_gen
-        copy._gen_birth = self._gen_birth
-        copy._is_evaluated = self._is_evaluated
-        copy._err_eval = self._err_eval
-        copy._is_valid = self._is_valid
-        return copy
-
-    def report(self) -> str:
-        return f"Individual {self._id} : {self.fitness:.3f} - from {self._origin} - {self._survived_gen} generations survived - history : {' <- '.join(self._origin[::-1])}"
-
-    def get_graph_repr(self):
-        raise NotImplementedError

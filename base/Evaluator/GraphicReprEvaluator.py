@@ -2,8 +2,10 @@ from abc import ABC, abstractmethod
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import numpy as np
+from numpy.typing import NDArray
 
-class GraphicReprIndividual(ABC):
+
+class GraphicReprEvaluator(ABC):
 
     _subaxs: dict = {}
     _curves: dict = {}
@@ -12,13 +14,12 @@ class GraphicReprIndividual(ABC):
         options.update(kwargs)
         options.has_graph_repr = True
 
-    @classmethod
     @abstractmethod
-    def init_plot(cls, ax) -> None:
+    def init_plot(self, ax) -> None:
         pass
 
     @abstractmethod
-    def plot(self, ax) -> None:
+    def plot(self, ax, individual) -> None:
         pass
 
     @staticmethod
@@ -28,29 +29,27 @@ class GraphicReprIndividual(ABC):
         if y_min is not None or y_max is not None:
             ax.set_ylim(bottom=y_min, top=y_max)
 
-    @classmethod
-    def create_subplots(cls, ax, n: int, m: int, height_ratios=None, hspace=None) -> None:
+    def create_subplots(self, ax, n: int, m: int, height_ratios=None, hspace=None) -> NDArray:
         inner_grid = gridspec.GridSpecFromSubplotSpec(n, m, subplot_spec=ax.get_subplotspec(), height_ratios=height_ratios, hspace=hspace)
         axs = np.empty((n, m), dtype=object)
         for i in range(n):
             for j in range(m):
                 axs[i][j] = ax.figure.add_subplot(inner_grid[i, j])
-        cls._subaxs[ax] = axs
+        self._subaxs[ax] = axs
         ax.axis('off')
+        return axs
 
-    @classmethod
-    def get_subaxs(cls, ax) -> np.ndarray:
-        return cls._subaxs[ax]
+    def get_subaxs(self, ax) -> np.ndarray:
+        return self._subaxs[ax]
 
-    @classmethod
-    def get_curves(cls, ax) -> dict:
-        return cls._curves[ax]
+    def get_curves(self, ax) -> dict:
+        return self._curves[ax]
 
-    @classmethod
-    def set_curves(cls, ax, curves: dict) -> None:
-        cls._curves[ax] = curves
+    def set_curves(self, ax, curves: dict) -> None:
+        self._curves[ax] = curves
 
-    def to_graph(self):
+    def to_graph(self, individual):
         fig, ax = plt.subplots()
-        self.plot(ax)
+        self.init_plot(ax)
+        self.plot(ax, individual)
         plt.show()

@@ -9,9 +9,9 @@ class GroupEvaluator(BaseEvaluator):
 
     _component_type: str = "Group"
 
-    def __init__(self, options):
-        super().__init__(options)
-
+    def __init__(self, options, **kwargs):
+        options.update(kwargs)
+        BaseEvaluator.__init__(self, options)
 
     def _evaluate_pop(self, population: BasePopulation):
         """

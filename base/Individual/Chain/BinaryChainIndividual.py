@@ -1,4 +1,4 @@
-from base.Individual.ChainIndividual import ChainIndividual
+from base.Individual.Chain.ChainIndividual import ChainIndividual
 
 
 class BinaryChainIndividual(ChainIndividual):
