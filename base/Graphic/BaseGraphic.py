@@ -15,6 +15,7 @@ class BaseGraphic(BaseComponent, AbstractGraphic):
         self.env = env
         options.update(kwargs)
         BaseComponent.__init__(self, options)
+        self._repr3D_ind: bool = options.repr3D
         self._stop_graph: bool = options.stop_graph
         self._end_graph: bool = options.end_graph
         self._metrics_graph: bool = options.metrics_graph
@@ -66,6 +67,8 @@ class BaseGraphic(BaseComponent, AbstractGraphic):
 
         if self._best_elite:
             self._set_dic_asx('elite', i)
+            if self._repr3D_ind:
+                self.replace_ax3D('elite')
             i += 1
             ax = self.get_ax('elite')
             self.env.evaluator.init_plot(ax)
@@ -74,6 +77,8 @@ class BaseGraphic(BaseComponent, AbstractGraphic):
 
         if self._best_pop:
             self._set_dic_asx('pop', i)
+            if self._repr3D_ind:
+                self.replace_ax3D('pop')
             i += 1
             ax = self.get_ax('pop')
             self.env.evaluator.init_plot(ax)
@@ -105,6 +110,13 @@ class BaseGraphic(BaseComponent, AbstractGraphic):
         if self._num_graphs == 1:
             return self.axs
         return self.axs[*self._dic_axs[type]]
+
+    def replace_ax3D(self, type):
+        idx = self._dic_axs[type]
+        if len(idx) == 1:
+            idx = (idx[0], 0)
+        l, c, n = idx[0]+1, idx[1]+1, idx[1]*4+idx[0]+1
+        self.axs[*self._dic_axs[type]] = self.fig.add_subplot(l, c, n, projection='3d')
 
     def update(self):
         if self._stop_graph:
@@ -156,7 +168,7 @@ class BaseGraphic(BaseComponent, AbstractGraphic):
             getattr(self, f"_{metric}_evo").set_xdata(self._generations[-self._max_gen_display:])
             getattr(self, f"_{metric}_evo").set_ydata(getattr(self, f"_{metric}_evo_data")[-self._max_gen_display:])
         ax.relim()
-        ax.set_ylim(0, self._metrics_ymax)
+        #ax.set_ylim(0, self._metrics_ymax)
         ax.autoscale_view()
 
     def update_graph_elite(self):

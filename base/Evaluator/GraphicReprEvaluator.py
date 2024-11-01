@@ -13,6 +13,7 @@ class GraphicReprEvaluator(ABC):
     def __init__(self, options, **kwargs):
         options.update(kwargs)
         options.has_graph_repr = True
+        self._repr3D = options.repr3D
 
     @abstractmethod
     def init_plot(self, ax) -> None:
