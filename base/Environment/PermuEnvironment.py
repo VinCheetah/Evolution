@@ -16,5 +16,4 @@ class PermuEnvironment(BaseEnvironment):
         options.assert_subtype("mutator", PermuMutator)
         options.assert_subtype("crosser", PermuCrosser)
         options.assert_subtype("evaluator", PermuEvaluator)
-        options.assert_subtype("selector", EliteSelector)
         BaseEnvironment.__init__(self, options)

@@ -14,7 +14,10 @@ class ChainMutator(BaseMutator):
         super().__init__(options)
 
     def _mutate(self, individual: ChainIndividual) -> bool:
-        idx = np.random.randint(0, len(individual)-1)
+        if len(individual) > 1:
+            idx = np.random.randint(0, len(individual)-1)
+        else:
+            idx = 0
         match individual._type_value:
             case builtins.int:
                 new_val = np.random.randint(individual._min_value, individual._max_value)

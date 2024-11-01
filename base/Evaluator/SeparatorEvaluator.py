@@ -21,7 +21,7 @@ class SeparatorEvaluator(SingleEvaluator, GraphicReprEvaluator):
     def _evaluate(self, individual) -> float:
         assert isinstance(individual, BinaryChainIndividual)
         set_1, set_2 = self._compute_sets_value(individual)
-        return abs(set_1 ** 2 - set_2)
+        return abs(set_1 - set_2)
 
     def _compute_sets_value(self, individual: BinaryChainIndividual):
         s1, s2 = 0, 0
