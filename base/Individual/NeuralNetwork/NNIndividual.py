@@ -2,7 +2,7 @@ from base.Component.BaseComponent import BaseComponent
 from base.Individual.BaseIndividual import BaseIndividual
 import numpy as np
 
-class NeuralNetworkIndividual(BaseIndividual):
+class NNIndividual(BaseIndividual):
 
     _component_type = "NeuralNetworkIndividual"
 
@@ -16,7 +16,6 @@ class NeuralNetworkIndividual(BaseIndividual):
         self.weights = []
         self.biases = []
 
-        # Initialize network parameters
         self.initialize_parameters()
 
     def initialize_parameters(self):
@@ -28,6 +27,24 @@ class NeuralNetworkIndividual(BaseIndividual):
             bias_vector = np.random.randn(layer_sizes[i + 1])
             self.weights.append(weight_matrix)
             self.biases.append(bias_vector)
+
+        # How to iter on weights
+
+    def edge_idx(self, layer, nstart, nend):
+        """Get the index of the edge between two neurons in the neural network."""
+        idx = 0
+        for i in range(layer):
+            idx += self.weights[i].shape[1]
+        idx += nstart * self.weights[layer].shape[1] + nend
+        return idx
+
+    def edge_neurons(self, idx):
+        """Get the neurons connected by the edge at the given index."""
+        for i in range(len(self.weights)):
+            if idx < self.weights[i].size:
+                return i, idx // self.weights[i].shape[1], idx % self.weights[i].shape[1]
+            idx -= self.weights[i].size
+        raise ValueError("Index {idx} out of range")
 
     def forward(self, x):
         """Compute the output of the neural network for input x."""
@@ -61,6 +78,6 @@ class NeuralNetworkIndividual(BaseIndividual):
         """Define the length as the total number of weights."""
         return sum(weight.size for weight in self.weights)
 
-    def get_graph_repr(self):
+    def repr(self):
         """Implement to visualize or describe the neural network structure."""
         return f"Neural Network with layers: {[self.input_size] + self.hidden_layers + [self.output_size]}"
