@@ -7,9 +7,9 @@ It defines the basic methods that a crosser should have.
 
 from random import random
 from abc import abstractmethod
-
 from evopy.component import BaseComponent
-from evopy.population.base import BasePopulation
+from evopy.population import BasePopulation
+from evopy.individual import BaseIndividual
 
 
 class BaseCrosser(BaseComponent):
@@ -19,6 +19,9 @@ class BaseCrosser(BaseComponent):
 
     _component_name: str = "Crosser"
     _component_type: str = "Base"
+    _requirements = {
+        "individual": BaseIndividual,
+    }
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)
@@ -33,7 +36,7 @@ class BaseCrosser(BaseComponent):
         return self._crossed
 
     @BaseComponent.record_time
-    def cross(self, population:BasePopulation) -> None:
+    def cross(self, population: BasePopulation) -> None:
         """
         Perform the crossover operation on the population.
         

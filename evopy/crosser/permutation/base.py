@@ -1,16 +1,23 @@
-from evopy.crosser import BaseCrosser
-from evopy.individual import PermuIndividual
+"""
+Defines the base class for permutation crossers: PermuCrosser.
+This class is a subclass of the Base Crosser class.
+"""
+
 import random as rd
 import numpy as np
+from evopy.crosser.base import BaseCrosser
+from evopy.individual import PermuIndividual
 
 
 class PermuCrosser(BaseCrosser):
+    """
+    Base class for permutation crossers.
+    """
 
-    _component_type: str = "Permu"
-    
+    _component_type: str = "Permutation"
     _requirements = {
         "individual": PermuIndividual,
-    }   
+    }
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)
@@ -26,8 +33,8 @@ class PermuCrosser(BaseCrosser):
         end: int = size + 1
         path[size] = start
         seen[start] = True
-        idx_1: int = np.flatnonzero(ind1._permutation == start)[0]
-        idx_2: int = np.flatnonzero(ind2._permutation == start)[0]
+        idx_1: int = np.flatnonzero(ind1.get_permutation() == start)[0]
+        idx_2: int = np.flatnonzero(ind2.get_permutation() == start)[0]
 
         while end - beg <= size:
             if rd.random() < .5:

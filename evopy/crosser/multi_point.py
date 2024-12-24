@@ -6,10 +6,11 @@ It permits to perform the crossover operation on multiple points.
 
 from abc import abstractmethod
 import numpy as np
+from evopy.crosser.base import BaseCrosser
 from evopy.individual import BaseIndividual
 
 
-class MultiPointCrosser:
+class MultiPointCrosser(BaseCrosser):
     """
     MultiPointCrosser class.
     This class is an optional class for a crosser.
@@ -25,6 +26,7 @@ class MultiPointCrosser:
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)
+        BaseCrosser.__init__(self, options)
 
         self._num_points: int = options.num_points
         self._num_cross: int = options.num_cross
