@@ -9,6 +9,7 @@ The BaseElite class is the base class for all elites.
 
 from evopy.elite.base import BaseElite
 
+
 __all__ = [
     "BaseElite",
 ]
