@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "evopy"
+version = "0.1.0"
+description = "Python background to handle genetic algorithms"
+authors = ["VinCheetah <vincent.gardies@ens-lyon.fr>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+matplotlib = "^3.9.4"
+numpy = "^2.2.0"
+tk = "^0.1.0"
+
+
+[tool.poetry.group.dev.dependencies]
+pylint = "^3.3.2"
+black = "^24.10.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
