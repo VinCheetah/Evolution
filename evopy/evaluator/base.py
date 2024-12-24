@@ -23,3 +23,6 @@ class BaseEvaluator(BaseComponent):
 
     def _evaluate_pop(self, population: BasePopulation) -> None:
         self.log("warning", "Method _evaluate_pop not implemented, no selection done")
+        
+    def get_eval_timeout(self) -> float | None:
+        return self._timeout if self._timeout > 0 else None

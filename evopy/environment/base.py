@@ -1,12 +1,14 @@
-""" BaseEnvironment module"""
+"""
+Defines the BaseEnvironment class
+This class is the base class for the environment
+"""
+
 import pickle
 import random
 from pathlib import Path
 from typing import Any
 from time import time
-
 import numpy as np
-
 from evopy.individual import BaseIndividual
 from evopy.population import BasePopulation
 from evopy.component import BaseComponent
@@ -18,26 +20,30 @@ from evopy.elite import BaseElite
 
 
 class BaseEnvironment(BaseComponent):
-    """ Base class for environment """
+    """Base class for environment"""
 
     _component_name: str = "Environment"
     _component_type: str = "Base"
     _components: list[str] = ["crosser", "mutator", "evaluator", "selector", "population", "elite"]
 
-    _active_selector: bool = True
-    _active_migration: bool = True
-    _active_mutator: bool = True
-    _active_crosser: bool = True
-    _active_elite: bool = True
-    _active_interface: bool = False
-    _active_tracking: bool = True
+    _activations: dict[str, bool] = {
+        "crosser": True,
+        "mutator": True,
+        "evaluator": True,
+        "selector": True,
+        "population": True,
+        "elite": True,
+        "migration": True,
+        "tracking": True,
+    }
 
     def __init__(self, options, **kwargs):
-
         self._reproducing: bool = options.evolution_record is not None
         if self._reproducing:
             self._evolution_record: dict = options.evolution_record
-            self._evolution_process: list[tuple[int, "str", Any]] = self._evolution_record["evolution_process"]
+            self._evolution_process: list[tuple[int, "str", Any]] = self._evolution_record[
+                "evolution_process"
+            ]
             self._evolution_process_idx: int = 0
             options.update(self._evolution_record["options"])
             if not options.from_beginning:
@@ -60,7 +66,7 @@ class BaseEnvironment(BaseComponent):
 
         self._init_components()
 
-        self._tracking: bool = self._active_tracking and options.tracking
+        self._tracking: bool = self.is_active("tracking") and options.tracking
 
         self._timeout: int = options.timeout
         self._max_gen: int = options.max_gen
@@ -68,11 +74,15 @@ class BaseEnvironment(BaseComponent):
 
         self._evolution_started: bool = False
         self._evolution_over: bool = False
-        self._evo_time: float = 0.
-        self._extra_time: float = 0.
-        self._extra_time_start: float = 0.
+        self._evo_time: float = 0.0
+        self._extra_time: float = 0.0
+        self._extra_time_start: float = 0.0
         self._n_gen: int = 0
         self._param_to_apply: set[tuple[str, Any]] = set()
+
+        self._start_time: float
+        self._stop_time: float
+        self._data_report: dict
 
         if self._tracking:
             self._param_tracker: list[tuple[int, str, Any]] = []
@@ -85,14 +95,13 @@ class BaseEnvironment(BaseComponent):
             self._n_gen = self._evolution_record["n_gen"]
             self._evo_time = self._evolution_record["evo_time"]
 
-
     def _init_components(self):
-        """ Initialize the components """
+        """Initialize the components"""
         for component in self._components:
             self._init_component(component)
 
     def _init_component(self, component_name: str):
-        """ Initialize a component """
+        """Initialize a component"""
         if self._verif_init_comp(component_name):
             comp = getattr(self, component_name)
             if comp.init_requires_environment:
@@ -102,15 +111,14 @@ class BaseEnvironment(BaseComponent):
             setattr(self, component_name, init_comp)
 
     def _verif_init_comp(self, component_name) -> bool:
-        """ Verify if a component needs to be initialized """
-        has_activation = hasattr(self, f"_active_{component_name}")
-        used_comp = True if not has_activation else getattr(self, f"_active_{component_name}")
+        """Verify if a component needs to be initialized"""
+        used_comp = True if component_name in self._activations else self.is_active(component_name)
         need_init = component_name != "individual"
         not_init = isinstance(getattr(self, component_name), type)
         return need_init and not_init and used_comp
 
     def evolve(self):
-        """ Evolve the population """
+        """Evolve the population"""
         self.init_evolution()
         self.evaluate()
         for _ in range(self._max_gen):
@@ -120,27 +128,26 @@ class BaseEnvironment(BaseComponent):
         self.end_evolution()
 
     def _evolution_timeout(self) -> bool:
-        """ Check if the evolution has reached the timeout """
+        """Check if the evolution has reached the timeout"""
         return self.time_since_start > self._timeout > 0
 
     def _start_extra_time(self):
-        """ Start the extra time """
+        """Start the extra time"""
         self._extra_time_start = time()
 
     def _set_extra_time(self):
-        """ Set the extra time """
+        """Set the extra time"""
         self._extra_time = time() - self._extra_time_start
 
     def init_evolution(self):
-        """ Initialize the evolution """
+        """Initialize the evolution"""
         self._evolution_started = True
         self._evolution_over = False
         self._start_extra_time()
         self._start_time = time()
 
-
     def end_evolution(self):
-        """ End the evolution """
+        """End the evolution"""
         self._evolution_started = False
         self._evolution_over = True
         self._stop_time = time()
@@ -152,8 +159,15 @@ class BaseEnvironment(BaseComponent):
         if self._tracking:
             self._record_evolution()
 
+    def is_active(self, component_name: str) -> bool:
+        """Check if a component is active"""
+        if component_name in self._activations:
+            return self._activations[component_name]
+        self.log("warning", f"Component {component_name} not found for activation")
+        return False
+
     def _record_evolution(self):
-        """ Record the evolution """
+        """Record the evolution"""
         rec_folder = Path(self._record_folder)
         rec_folder.mkdir(parents=True, exist_ok=True)
         rec_subfoler = Path(rec_folder / self._record_subfolder)
@@ -170,26 +184,26 @@ class BaseEnvironment(BaseComponent):
             pickle.dump(self._make_evolution_record(), f)
 
     def _make_evolution_record(self) -> dict[str, Any]:
-        """ Make the evolution record """
+        """Make the evolution record"""
         return {
             "options": self._options,
             "evo_time": self._evo_time,
             "n_gen": self._n_gen,
             "evolution_process": self._param_tracker,
-            "last_population": self.population._population,
+            "last_population": self.population.get_population(),
         }
 
     def _record_param_update(self, parameter_name: str, value):
-        """ Record the parameter update """
+        """Record the parameter update"""
         self.log("info", f"Parameter {parameter_name} updated to {value}")
         self._param_tracker.append((self._n_gen, parameter_name, value))
 
     def update_parameter(self, parameter_name: str, value: Any) -> None:
-        """ Update a parameter """
+        """Update a parameter"""
         self._param_to_apply.add((parameter_name, value))
 
     def _update_evolution_param(self):
-        """ Update the evolution parameters """
+        """Update the evolution parameters"""
         if self._param_to_apply:
             for param in self._param_to_apply:
                 setattr(self, param[0], param[1])
@@ -198,13 +212,19 @@ class BaseEnvironment(BaseComponent):
             self._param_to_apply.clear()
 
     def _update_param_process(self):
-        """ Update the parameter process """
-        while self._evolution_process_idx < len(self._evolution_process) and self._n_gen == self._evolution_process[self._evolution_process_idx][0]:
-            self.update_parameter(self._evolution_process[self._evolution_process_idx][1], self._evolution_process[self._evolution_process_idx][2])
+        """Update the parameter process"""
+        while (
+            self._evolution_process_idx < len(self._evolution_process)
+            and self._n_gen == self._evolution_process[self._evolution_process_idx][0]
+        ):
+            self.update_parameter(
+                self._evolution_process[self._evolution_process_idx][1],
+                self._evolution_process[self._evolution_process_idx][2],
+            )
             self._evolution_process_idx += 1
 
     def init_new_generation(self):
-        """ Initialize a new generation """
+        """Initialize a new generation"""
         self._n_gen += 1
         self.log("info", f"Generation {self._n_gen} started")
         if self._reproducing:
@@ -233,78 +253,92 @@ class BaseEnvironment(BaseComponent):
         self._start_extra_time()
         self.log_report()
 
-    def log_report(self):
-        """ Log the report """
-        self._data_report = {"general": {"n_gen": self._n_gen,
-                                         "time": int(self.time_since_start*10)/10,},
-
-                             "top": self.elite.best.fitness,
-                             "pop": int(self.population.best.fitness*100)/100,
-                             "mean": int(np.mean([ind.fitness for ind in self.population])*100)/100,
-
-                             "population": {"size": self.population.size,
-                                            "immi": self.population.num_immigrated_individuals(),
-                                            "mut": self.mutator.num_mutated_individuals(),
-                                            "cros": self.crosser.num_crossed_individuals(),
-                                            "eval": self.evaluator.num_evaluated_individuals(),}
+    def get_report(self):
+        """Get the report"""
+        return {
+            "general": {
+                "n_gen": self._n_gen,
+                "time": int(self.time_since_start * 10) / 10,
+            },
+            "top": self.elite.best.fitness,
+            "pop": int(self.population.best.fitness * 100) / 100,
+            "mean": int(np.mean([ind.fitness for ind in self.population]) * 100) / 100,
+            "population": {
+                "size": self.population.size,
+                "immi": self.population.num_immigrated_individuals(),
+                "mut": self.mutator.num_mutated_individuals(),
+                "cros": self.crosser.num_crossed_individuals(),
+                "eval": self.evaluator.num_evaluated_individuals(),
+            },
         }
-        self.log("info", f"New report : {self._data_report}")
+
+    def log_report(self):
+        """Log the report"""
+        self.log("info", f"New report : {self.get_report()}")
         self.log("info", f"Generation n°{self._n_gen} is completed")
         self.log("info", f"Time since start: {self.time_since_start:.2f}s")
         print(self._get_str_report())
 
     def _get_str_report(self):
-        """ Get the report as a string """
+        """Get the report as a string"""
         report = ""
         space = 7
-        for key, value in self._data_report.items():
+        for key, value in self.get_report().items():
             if isinstance(value, dict):
                 report += "\t"
                 for key2, valu2 in value.items():
-                    report += key2 + ": " + str(valu2)[:space]  + " " * max(0, space - len(str(valu2))) + "  "
+                    report += (
+                        key2
+                        + ": "
+                        + str(valu2)[:space]
+                        + " " * max(0, space - len(str(valu2)))
+                        + "  "
+                    )
                 report += "\t"
             else:
-                report += key + ": " + str(value)[:space] + " " * max(0, space - len(str(value))) + "  "
+                report += (
+                    key + ": " + str(value)[:space] + " " * max(0, space - len(str(value))) + "  "
+                )
         return report
 
     def update_elite(self):
-        """ Update the elite """
-        if self._active_elite:
+        """Update the elite"""
+        if self.is_active("elite"):
             self.log("info", "Elite update begins")
             self.elite.update(self.population)
 
     def select(self):
-        """ Select the population """
-        if self._active_selector:
+        """Select the population"""
+        if self.is_active("selector"):
             self.log("info", "Selection process begins")
             self.selector.select(self.population)
 
     def migrate(self):
-        """ Migrate the population """
-        if self._active_migration:
+        """Migrate the population"""
+        if self.is_active("migration"):
             self.log("info", "Migration process begins")
             self.population.migrate()
 
     def mutate(self):
-        """ Mutate the population """
-        if self._active_mutator:
+        """Mutate the population"""
+        if self.is_active("mutator"):
             self.log("info", "Mutation process begins")
             self.mutator.mutate(self.population)
 
     def cross(self):
-        """ Cross the population """
-        if self._active_crosser:
+        """Cross the population"""
+        if self.is_active("crosser"):
             self.log("info", "Crossover process begins")
             self.crosser.cross(self.population)
 
     def evaluate(self):
-        """ Evaluate the population """
+        """Evaluate the population"""
         self.log("info", "Evaluation process begins")
         self.evaluator.evaluate(self.population)
 
     @property
     def time_since_start(self):
-        """ Get the time since the start of the evolution """
+        """Get the time since the start of the evolution"""
         if self._evolution_started:
             t = time() - self._start_time + self._evo_time
         else:
@@ -312,31 +346,31 @@ class BaseEnvironment(BaseComponent):
         return t
 
     def get_info(self):
-        """ Get the environment information """
+        """Get the environment information"""
         return {
-            "components" : {comp_name: getattr(self, comp_name) for comp_name in self._components},
-
+            "components": {comp_name: getattr(self, comp_name) for comp_name in self._components},
             "init": {
                 "random_seed": self.random_seed,
-                "size_population": self.population._init_size,
+                "size_population": self.population.get_init_size(),
                 "timeout": self._timeout,
-                "eval_timeout": self.evaluator._timeout,
+                "eval_timeout": self.evaluator.get_eval_timeout(),
             },
-
             "actual": {
                 "size_population": self.population.size,
                 "time_since_start": self.time_since_start,
                 "n_gen": self._n_gen,
-            }
+            },
         }
-        
+
     def get_generation(self):
-        """ Get the number of the generation """
+        """Get the number of the generation"""
         return self._n_gen
 
     def components_duration(self):
-        """ Get the components duration """
-        durations = {comp_name: getattr(self, comp_name).get_duration() for comp_name in self._components}
+        """Get the components duration"""
+        durations = {
+            comp_name: getattr(self, comp_name).get_duration() for comp_name in self._components
+        }
         durations["extra_time"] = self._extra_time
         durations["generation"] = self.get_duration()
         return durations

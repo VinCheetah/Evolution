@@ -45,6 +45,9 @@ class BasePopulation(BaseComponent, AbstractPopulation):
         
     def get_selected_mean(self):
         return self._selected_mean
+    
+    def get_init_size(self) -> int:
+        return self._init_size
 
     def num_immigrated_individuals(self) -> int:
         return self._immigrated
@@ -69,6 +72,9 @@ class BasePopulation(BaseComponent, AbstractPopulation):
     @property
     def size(self):
         return len(self._population)
+    
+    def get_population(self):
+        return self._population
 
     def init(self):
         pass
