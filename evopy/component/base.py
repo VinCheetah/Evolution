@@ -46,7 +46,7 @@ class BaseComponent:
             return result
 
         return wrapper
-    
+
     def get_duration(self) -> float:
         """
         Get the duration of the last method call.
