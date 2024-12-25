@@ -14,6 +14,7 @@ class BaseComponent:
 
     _component_name: str = "Component"
     _component_type: str = "Base"
+    _requirements: dict[list] = {}
     init_requires_environment: bool = False
 
     def __init__(self, options):
@@ -73,6 +74,59 @@ class BaseComponent:
             return result
 
         return wrapper
+
+    @classmethod
+    def add_requirement(cls, name, component_class):
+        """
+        Add a requirement to the component.
+
+        Args:
+            name (str): Name of the requirement.
+            component_class (type): Required component.
+        """
+        if component_class not in cls._requirements[name]:
+            cls._requirements[name] = []
+        cls._requirements[name].append(component_class)
+
+    @classmethod
+    def get_requirements(cls) -> dict:
+        """
+        Get the requirements of the component.
+
+        Returns:
+            dict: Requirements of the component.
+        """
+        return cls._requirements
+
+    @classmethod
+    def del_requirements(cls, component_name: str):
+        """
+        Delete a requirement from the component.
+
+        Args:
+            component_name (str): Name of the requirement.
+        """
+        del cls._requirements[component_name]
+
+    @classmethod
+    def set_component_type(cls, component_type: str):
+        """
+        Set the component type.
+
+        Args:
+            component_type (str): Type of the component.
+        """
+        cls._component_type = component_type
+
+    @classmethod
+    def set_component_name(cls, component_name: str):
+        """
+        Set the component name.
+
+        Args:
+            component_name (str): Name of the component.
+        """
+        cls._component_name = component_name
 
     @classmethod
     def _set_options(cls):
