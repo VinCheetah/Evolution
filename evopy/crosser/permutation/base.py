@@ -14,10 +14,8 @@ class PermuCrosser(BaseCrosser):
     Base class for permutation crossers.
     """
 
-    _component_type: str = "Permutation"
-    _requirements = {
-        "individual": PermuIndividual,
-    }
+    BaseCrosser.set_component_type("Permutation")
+    BaseCrosser.add_requirement("individual", PermuIndividual)
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)

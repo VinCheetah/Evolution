@@ -17,7 +17,7 @@ class MeanChainCrosser(ChainCrosser):
     The crossover operation is performed by taking the mean of the two chains.
     """
 
-    _component_type = "MeanChain"
+    ChainCrosser.set_component_type("MeanChain")
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)

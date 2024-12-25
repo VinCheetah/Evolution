@@ -17,11 +17,9 @@ class BaseCrosser(BaseComponent):
     Base class for all crossers.
     """
 
-    _component_name: str = "Crosser"
-    _component_type: str = "Base"
-    _requirements = {
-        "individual": BaseIndividual,
-    }
+    BaseComponent.set_component_name("Crosser")
+    BaseComponent.set_component_type("Base")
+    BaseComponent.add_requirement("individual", BaseIndividual)
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)

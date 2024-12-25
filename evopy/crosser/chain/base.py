@@ -15,10 +15,8 @@ class ChainCrosser(MultiPointCrosser, BaseCrosser):
     Base crosser class for ChainIndividuals.
     """
 
-    _component_type = "Chain"
-    _requirements = {
-        "individual": ChainIndividual,
-    }
+    BaseCrosser.set_component_type("Chain")
+    BaseCrosser.add_requirement("individual", ChainIndividual)
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)

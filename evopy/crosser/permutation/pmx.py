@@ -5,27 +5,24 @@ It is used to perform the PMX crossover operation on PermuIndividuals.
 """
 
 import numpy as np
-from evopy.crosser.permutation.base import BaseCrosser
+from evopy.crosser.permutation.base import PermuCrosser
 from evopy.crosser.multi_point import MultiPointCrosser
 from evopy.individual import PermuIndividual
 
 
-class PermuCrosserPMX(MultiPointCrosser, BaseCrosser):
+class PermuCrosserPMX(MultiPointCrosser, PermuCrosser):
     """
     This is the PermuCrosserPMX class.
     This class is a subclass of the MultiPointCrosser and BaseCrosser classes.
     It is used to perform the PMX crossover operation on PermuIndividuals.
     """
 
-    _component_type: str = "PMX"
-    _requirements = {
-        "individual": PermuIndividual,
-    }
+    PermuCrosser.set_component_type("PMX")
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)
         MultiPointCrosser.__init__(self, options, num_points=2)
-        BaseCrosser.__init__(self, options)
+        PermuCrosser.__init__(self, options)
 
     def _cross_points(self, data: dict, ind2: PermuIndividual, *idx) -> dict:
         idx1, idx2 = idx
