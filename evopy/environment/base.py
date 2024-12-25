@@ -24,7 +24,7 @@ class BaseEnvironment(BaseComponent):
 
     BaseComponent.set_component_name("Environment")
     BaseComponent.set_component_type("Base")
-    
+
     _components: list[str] = ["crosser", "mutator", "evaluator", "selector", "population", "elite"]
     _activations: dict[str, bool] = {
         "crosser": True,
@@ -39,8 +39,8 @@ class BaseEnvironment(BaseComponent):
 
     def __init__(self, options, **kwargs):
         if isinstance(self, Mixin):
-            self._init_mixin()
-        
+            self._init_mixin(options)
+
         self._reproducing: bool = options.evolution_record is not None
         if self._reproducing:
             self._evolution_record: dict = options.evolution_record
@@ -97,6 +97,13 @@ class BaseEnvironment(BaseComponent):
         if self._reproducing and not options.from_beginning:
             self._n_gen = self._evolution_record["n_gen"]
             self._evo_time = self._evolution_record["evo_time"]
+     
+    def _init_mixin(self):
+        if not isinstance(self, Mixin):
+            return
+        for comp_name, list_comp in self.get_requirements_mixin.items():
+            for comp in list_comp:
+                self.add_requirement(comp_name, comp)
 
     @classmethod
     def add_component(cls, component_name: str):

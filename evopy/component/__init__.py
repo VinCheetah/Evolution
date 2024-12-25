@@ -9,5 +9,5 @@ from evopy.component.mixin import Mixin
 
 __all__ = [
     "BaseComponent",
-    "Mixin"]
-
+    "Mixin",
+]
