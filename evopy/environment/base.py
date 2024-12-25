@@ -11,7 +11,7 @@ from time import time
 import numpy as np
 from evopy.individual import BaseIndividual
 from evopy.population import BasePopulation
-from evopy.component import BaseComponent
+from evopy.component import BaseComponent, Mixin
 from evopy.evaluator import BaseEvaluator
 from evopy.selector import BaseSelector
 from evopy.mutator import BaseMutator
@@ -22,10 +22,10 @@ from evopy.elite import BaseElite
 class BaseEnvironment(BaseComponent):
     """Base class for environment"""
 
-    _component_name: str = "Environment"
-    _component_type: str = "Base"
+    BaseComponent.set_component_name("Environment")
+    BaseComponent.set_component_type("Base")
+    
     _components: list[str] = ["crosser", "mutator", "evaluator", "selector", "population", "elite"]
-
     _activations: dict[str, bool] = {
         "crosser": True,
         "mutator": True,
@@ -38,6 +38,9 @@ class BaseEnvironment(BaseComponent):
     }
 
     def __init__(self, options, **kwargs):
+        if isinstance(self, Mixin):
+            self._init_mixin()
+        
         self._reproducing: bool = options.evolution_record is not None
         if self._reproducing:
             self._evolution_record: dict = options.evolution_record
@@ -94,6 +97,11 @@ class BaseEnvironment(BaseComponent):
         if self._reproducing and not options.from_beginning:
             self._n_gen = self._evolution_record["n_gen"]
             self._evo_time = self._evolution_record["evo_time"]
+
+    @classmethod
+    def add_component(cls, component_name: str):
+        """Add a component to the components list"""
+        cls._components.append(component_name)
 
     def _init_components(self):
         """Initialize the components"""
@@ -246,6 +254,7 @@ class BaseEnvironment(BaseComponent):
     def _new_generation(self):
         """
         New generation process : selection, migration, mutation, crossover, evaluation, elite update
+        The generation is encapsulated with the initialisation and a log report 
         """
         self.init_new_generation()
         self._set_extra_time()
