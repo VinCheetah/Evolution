@@ -20,5 +20,5 @@ __all__ = [
     "BaseMutator",
     "PermuMutator",
     "ChainMutator",
-    "BinaryChainMutator",   
+    "BinaryChainMutator",
 ]

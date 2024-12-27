@@ -4,7 +4,7 @@ Defines the base class for permutation individuals
 
 import numpy as np
 import numpy.typing as npt
-from evopy.individual import BaseIndividual
+from evopy.individual.base import BaseIndividual
 
 
 class PermuIndividual(BaseIndividual):
@@ -12,7 +12,7 @@ class PermuIndividual(BaseIndividual):
     Base class for permutation individuals
     """
 
-    _component_type: str = "Permutation"
+    BaseIndividual.set_component_type("Permutation")
 
     def __init__(self, options):
         super().__init__(options)
@@ -35,7 +35,9 @@ class PermuIndividual(BaseIndividual):
         if permu is None:
             self.log(level="warning", msg="No permutation data")
         else:
-            assert len(permu) == self._size, f"Permutation should be of size {self._size} but {permu} has size {len(permu)}"
+            assert (
+                len(permu) == self._size
+            ), f"Permutation should be of size {self._size} but {permu} has size {len(permu)}"
         self._permutation = permu if permu is not None else np.random.permutation(self._size)
         self._assert_is_perm()
 
@@ -43,8 +45,11 @@ class PermuIndividual(BaseIndividual):
         """
         Swap the elements at index idx1 and idx2
         """
-        
-        self._permutation[idx1], self._permutation[idx2] = self._permutation[idx2], self._permutation[idx1]
+
+        self._permutation[idx1], self._permutation[idx2] = (
+            self._permutation[idx2],
+            self._permutation[idx1],
+        )
         return True
 
     def move_element(self, idx: int, new_pos: int) -> bool:
@@ -65,16 +70,16 @@ class PermuIndividual(BaseIndividual):
         new_elt = self._permutation[idx]
         if idx < new_pos:
             if new_pos >= self._size:
-                self._permutation[idx:self._size-1] = self._permutation[idx+1:]
+                self._permutation[idx : self._size - 1] = self._permutation[idx + 1 :]
                 self._permutation[-1] = self._permutation[0]
             else:
-                self._permutation[idx:new_pos] = self._permutation[idx+1:new_pos+1]
+                self._permutation[idx:new_pos] = self._permutation[idx + 1 : new_pos + 1]
         else:
             if new_pos == 0:
-                self._permutation[1:idx+1] = self._permutation[:idx]
+                self._permutation[1 : idx + 1] = self._permutation[:idx]
                 self._permutation[0] = self._permutation[-1]
             else:
-                self._permutation[new_pos:idx+1] = self._permutation[new_pos-1:idx]
+                self._permutation[new_pos : idx + 1] = self._permutation[new_pos - 1 : idx]
         self._permutation[new_pos] = new_elt
         return True
 
@@ -93,14 +98,18 @@ class PermuIndividual(BaseIndividual):
         Returns:
             bool: True if the move was successful, False otherwise
         """
-        dec = dec % (self._size - length-1) + 1
+        dec = dec % (self._size - length - 1) + 1
 
-        if length == 0 or dec==0:
+        if length == 0 or dec == 0:
             return False
 
         dec_idx_l = max(0, idx + length - self._size)
-        permu_less = np.concatenate([self._permutation[idx+length-dec_idx_l:], self._permutation[dec_idx_l:idx]])
-        permu_removed = np.concatenate([self._permutation[idx:idx+length-dec_idx_l], self._permutation[:dec_idx_l]])
+        permu_less = np.concatenate(
+            [self._permutation[idx + length - dec_idx_l :], self._permutation[dec_idx_l:idx]]
+        )
+        permu_removed = np.concatenate(
+            [self._permutation[idx : idx + length - dec_idx_l], self._permutation[:dec_idx_l]]
+        )
         if reverse:
             permu_removed = permu_removed[::-1]
         self._permutation = np.concatenate([permu_less[:dec], permu_removed, permu_less[dec:]])
@@ -111,21 +120,27 @@ class PermuIndividual(BaseIndividual):
         """
         Reverse the elements from idx1 to idx2
         """
-        self._permutation[idx1:idx2+1] = self._permutation[idx1:idx2+1][::-1].copy()
+        self._permutation[idx1 : idx2 + 1] = self._permutation[idx1 : idx2 + 1][::-1].copy()
         return True
 
     def shuffle(self, idx1, idx2):
         """
         Shuffle the elements from idx1 to idx2
         """
-        self._permutation[idx1:idx2+1] = np.random.permutation(self._permutation[idx1:idx2+1])
+        self._permutation[idx1 : idx2 + 1] = np.random.permutation(
+            self._permutation[idx1 : idx2 + 1]
+        )
         return True
 
     def _assert_is_perm(self):
-        assert np.array_equal(np.sort(self._permutation), np.arange(self._size)), f"Permutation {self._permutation} is not a permutation of {self._size}"
+        assert np.array_equal(
+            np.sort(self._permutation), np.arange(self._size)
+        ), f"Permutation {self._permutation} is not a permutation of {self._size}"
 
     def __eq__(self, other) -> bool:
-        return isinstance(other, PermuIndividual) and np.array_equal(self._permutation, other._permutation)
+        return isinstance(other, PermuIndividual) and np.array_equal(
+            self._permutation, other._permutation
+        )
 
     def __len__(self) -> int:
         return self._size

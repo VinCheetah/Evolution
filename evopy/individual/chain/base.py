@@ -7,8 +7,8 @@ This class is the base class for all individuals with a chain of values.
 
 import builtins
 import numpy as np
+from evopy.individual.base import BaseIndividual
 from numpy.typing import NDArray
-from evopy.individual import BaseIndividual
 
 
 class ChainIndividual(BaseIndividual):
@@ -16,7 +16,7 @@ class ChainIndividual(BaseIndividual):
     Base class for all individuals with a chain of values.
     """
 
-    _component_type: str = "Chain"
+    BaseIndividual.set_component_type("Chain")
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)
@@ -63,6 +63,18 @@ class ChainIndividual(BaseIndividual):
         Get the chain of values of the individual.
         """
         return self._chain
+    
+    def get_bounds(self) -> tuple:
+        """
+        Get the bounds of the individual.
+        """
+        return (self._min_value, self._max_value)
+    
+    def get_type(self) -> type:
+        """
+        Get the type of the individual.
+        """
+        return self._type_value
 
     def _assert_is_chain(self):
         assert np.issubdtype(

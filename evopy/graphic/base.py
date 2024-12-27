@@ -19,7 +19,8 @@ class BaseGraphic(BaseComponent):
     """
 
     _component_type: str = "Base"
-    _component_name: str = "Graphic"
+    BaseComponent.set_component_name("Graphic")
+    BaseComponent.set_component_type("Base")
     init_requires_environment: bool = True
 
     def __init__(self, env, options, **kwargs):
@@ -65,8 +66,8 @@ class BaseGraphic(BaseComponent):
             self._generation_time_data: list[float] = []
             self._extra_time_data: list[float] = []
             self._time_ymax: float = 0
-        
-        
+
+
         if self._num_graphs > 0 and not self._stop_graph:
             self._init_graph()
 

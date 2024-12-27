@@ -14,12 +14,13 @@ class BaseMutator(BaseComponent):
     Base class for mutators
     """
 
-    _component_name: str = "Mutator"
-    _component_type: str = "Base"
+    BaseComponent.set_component_name("Mutator")
+    BaseComponent.set_component_type("Base")
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)
         BaseComponent.__init__(self, options)
+        self._size: int = options.individual_size
         self._mutated_individuals: int = 0
         self._mutations: int = 0
         self._mut_prob: float = options.mutation_prob
@@ -47,7 +48,7 @@ class BaseMutator(BaseComponent):
                         case "times":
                             mut_prob = mut_prob * self._mut_prob
                         case "squared":
-                            mut_prob = mut_prob ** 2
+                            mut_prob = mut_prob**2
                         case "linear":
                             pass
                 else:
@@ -61,12 +62,12 @@ class BaseMutator(BaseComponent):
     def _mutate(self, individual: BaseIndividual) -> bool:
         """
         Mutate an individual
-        
+
         Parameters
         ----------
         individual : BaseIndividual
             The individual to mutate
-            
+
         Returns
         -------
         bool

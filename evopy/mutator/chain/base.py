@@ -1,12 +1,22 @@
-from evopy.mutator import BaseMutator
-from evopy.individual import ChainIndividual
-import numpy as np
+""" 
+Defines the ChainMutator class, which is used to mutate ChainIndividuals.
+This class is a subclass of BaseMutator.
+"""
+
 import builtins
+import numpy as np
+from evopy.mutator.base import BaseMutator
+from evopy.individual import ChainIndividual
 
 
 class ChainMutator(BaseMutator):
+    """
+    Mutator for ChainIndividuals.
+    This mutator changes the value of a single element in the chain.
+    """
 
-    _component_type = "Chain"
+    BaseMutator.set_component_type("Chain")
+    BaseMutator.add_requirement("individual", ChainIndividual)
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)
@@ -14,14 +24,14 @@ class ChainMutator(BaseMutator):
 
     def _mutate(self, individual: ChainIndividual) -> bool:
         if len(individual) > 1:
-            idx = np.random.randint(0, len(individual)-1)
+            idx = np.random.randint(0, len(individual) - 1)
         else:
             idx = 0
-        match individual._type_value:
+        match individual.get_type():
             case builtins.int:
-                new_val = np.random.randint(individual._min_value, individual._max_value)
+                new_val = np.random.randint(*individual.get_bounds())
             case builtins.float:
-                new_val = np.random.uniform(individual._min_value, individual._max_value)
+                new_val = np.random.uniform(*individual.get_bounds())
             case _:
                 raise NotImplementedError
         previous = individual[idx]

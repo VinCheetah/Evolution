@@ -19,32 +19,27 @@ class BaseIndividual(BaseComponent):
         The counter for the id of the individuals.
     """
 
+    BaseComponent.set_component_name("Individual")
+    BaseComponent.set_component_type("Base")
     _id_counter: int = 0
-    _component_name: str = "Individual"
-    _component_type: str = "Base"
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)
         BaseComponent.__init__(self, options)
         self._id: int
-        self.get_new_id()
-
-        self._unvalid_fit_value = options.unvalid_fit_value
-        self._unevaluated_time = options.unevaluated_time
+        self.set_new_id()
 
         self._is_evaluated: bool = False
-        self._is_valid: bool = False
-
         self._origin: list = ["void"]
-
-        self._fitness: float = 0.0
-        self._eval_time: float
-        self._err_eval: str = ""
         self._gen_birth: int = 0
         self._survived_gen: int = 0
+        self._evaluation: tuple[float, float, str] = (0., 0., "")
+
 
     @classmethod
-    def from_data(cls, options, data: dict, origin: list[str], set_id:int=-1) -> "BaseIndividual":
+    def from_data(
+        cls, options, data: dict, origin: list[str], set_id: int = -1
+    ) -> "BaseIndividual":
         """
         Create an individual from data.
 
@@ -69,7 +64,7 @@ class BaseIndividual(BaseComponent):
 
         new_ind.set_origin(origin)
         if set_id := -1:
-            new_ind.change_id(set_id)
+            new_ind.set_new_id(set_id)
         return new_ind
 
     @classmethod
@@ -101,26 +96,21 @@ class BaseIndividual(BaseComponent):
         """
         return f"{self._id} : {self.fitness:.3f}"
 
-    def get_new_id(self):
+    def set_new_id(self, new_id: int | None = None):
         """
         Get a new id for the individual.
         """
-        self._id = BaseIndividual._id_counter
-        BaseIndividual._id_counter += 1
+        if new_id is None:
+            new_id = BaseIndividual._id_counter
+            BaseIndividual._id_counter += 1
+        self._id = new_id
 
-    def get_id(self):
+    def get_id(self) -> int:
         """
         Get the id of the individual.
         """
         return self._id
 
-    def change_id(self, new_id):
-        """
-        Change the id of the individual.
-        """
-        self._id = new_id
-        self._id_counter -= 1
-        
     def get_is_evaluated(self):
         """
         Returns whether the individual is evaluated.
@@ -134,10 +124,8 @@ class BaseIndividual(BaseComponent):
         Its origin is updated too.
         """
         self._origin_update_mutation()
-        self.get_new_id()
+        self.set_new_id()
         self._is_evaluated = False
-        self._is_valid = False
-        self._err_eval = ""
 
     def _origin_update_mutation(self):
         """
@@ -149,18 +137,34 @@ class BaseIndividual(BaseComponent):
         self._origin = data.get("origin", [])
 
     @property
-    def fitness(self):
+    def is_valid(self):
+        """ 
+        Returns if the individual has been evaluated successfully
+        """
+        return self._is_evaluated and self.err_eval == ""
+
+    @property
+    def fitness(self) -> float:
         """
         Returns the fitness of the individual if it is valid, else the unvalid_fit_value.
         """
-        return self._fitness if self._is_valid else self._unvalid_fit_value
+        return self._evaluation[0] if self.is_valid else self._options.unvalid_fit_value
 
     @property
-    def eval_time(self):
+    def eval_time(self) -> float:
         """
         Returns the evaluation time of the individual if it is evaluated, else the unevaluated_time.
         """
-        return self._eval_time if self._is_evaluated else self._unevaluated_time
+        return self._evaluation[1] if self._is_evaluated else self._options.unevaluated_time
+
+    @property
+    def err_eval(self) -> str:
+        """ 
+        Returns the error message of the evaluation.
+        If the evaluation did not raise any errors, then it returns ''.
+        If the indvidual is not evaluated, then it returns 'None'.
+        """
+        return self._evaluation[2] if self._is_evaluated else "None"
 
     def new_generation(self):
         """
@@ -172,15 +176,8 @@ class BaseIndividual(BaseComponent):
         """
         Register the evaluation of the individual.
         """
-        self._eval_time = time
         self._is_evaluated = True
-        if err_eval == "":
-            self._fitness = fitness
-            self._is_valid = True
-        else:
-            self._is_valid = False
-            self._err_eval = err_eval
-            self.log(level="debug", msg=f"Evaluation error: {err_eval}")
+        self._evaluation = (fitness, time, err_eval)
 
     def get_data(self) -> dict:
         """
@@ -193,11 +190,8 @@ class BaseIndividual(BaseComponent):
         Get the evaluation data of the individual.
         """
         return {
-            "fitness": self._fitness,
-            "eval_time": self._eval_time,
             "is_evaluated": self._is_evaluated,
-            "err_eval": self._err_eval,
-            "is_valid": self._is_valid,
+            "evaluation": self._evaluation,
             "survived_gen": self._survived_gen,
             "gen_birth": self._gen_birth,
         }
@@ -207,11 +201,8 @@ class BaseIndividual(BaseComponent):
         Transfer the evaluation data from another individual.
         """
         side_data = ind.get_eval_data()
-        self._fitness = side_data["fitness"]
-        self._eval_time = side_data["eval_time"]
         self._is_evaluated = side_data["is_evaluated"]
-        self._err_eval = side_data["err_eval"]
-        self._is_valid = side_data["is_valid"]
+        self._evaluation = side_data["evaluation"]
         self._survived_gen = side_data["survived_gen"]
         self._gen_birth = side_data["gen_birth"]
 
@@ -229,9 +220,11 @@ class BaseIndividual(BaseComponent):
         """
         Returns a description of the individual.
         """
-        return f"Individual {self._id} : {self.fitness:.3f} - from {self._origin} - " \
-               f"{self._survived_gen} generations survived - " \
-               f"history : {' <- '.join(self._origin[::-1])}"
+        return (
+            f"Individual {self._id} : {self.fitness:.3f} - from {self._origin} - "
+            f"{self._survived_gen} generations survived - "
+            f"history : {' <- '.join(self._origin[::-1])}"
+        )
 
     def set_curr_origin(self, origin: str):
         """

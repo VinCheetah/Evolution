@@ -5,7 +5,7 @@ This class represents an individual with a binary chain of values.
 This class is the base class for all individuals with a binary chain of values.
 """
 
-from evopy.individual import ChainIndividual
+from evopy.individual.chain.base import ChainIndividual
 
 
 class BinaryChainIndividual(ChainIndividual):
@@ -13,7 +13,7 @@ class BinaryChainIndividual(ChainIndividual):
     Base class for all individuals with a binary chain of values.
     """
 
-    _component_type: str = "BinaryChain"
+    ChainIndividual.set_component_type("BinaryChain")
 
     def __init__(self, options, **kwargs):
 

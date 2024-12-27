@@ -1,7 +1,8 @@
 """
 The Individual package.
 
-This package provides the following classes for creating and managing individuals in an evolutionary algorithm:
+This package provides the following classes for creating 
+and managing individuals in an evolutionary algorithm:
 
 - `BaseIndividual`: The base class for all individual types.
 - `PermuIndividual`: Represents an individual based on permutations.

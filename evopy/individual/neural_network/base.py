@@ -5,7 +5,7 @@ Individuals in this module are based on neural networks.
 """
 
 import numpy as np
-from evopy.individual import BaseIndividual
+from evopy.individual.base import BaseIndividual
 
 
 class NNIndividual(BaseIndividual):
@@ -13,7 +13,7 @@ class NNIndividual(BaseIndividual):
     Base class for individuals based on neural networks.
     """
 
-    _component_type = "NeuralNetworkIndividual"
+    BaseIndividual.set_component_type("NeuralNetwork")
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)
