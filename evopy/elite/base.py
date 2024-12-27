@@ -14,8 +14,8 @@ class BaseElite(BaseComponent):
     Base class for the Elite component.
     """
 
-    _component_name: str = "Elite"
-    _component_type: str = "Base"
+    BaseComponent.set_component_name("Elite")
+    BaseComponent.set_component_type("Base")
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)

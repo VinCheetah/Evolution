@@ -120,6 +120,12 @@ class BaseIndividual(BaseComponent):
         """
         self._id = new_id
         self._id_counter -= 1
+        
+    def get_is_evaluated(self):
+        """
+        Returns whether the individual is evaluated.
+        """
+        return self._is_evaluated
 
     def has_mutate(self):
         """

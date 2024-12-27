@@ -52,7 +52,7 @@ class BasePopulation(BaseComponent, AbstractPopulation):
     def num_immigrated_individuals(self) -> int:
         return self._immigrated
 
-    def _init_evaluation(self):
+    def init_evaluation(self):
         if self._complete_population and self._init_size > len(self._population):
             self._sorted = False
             self.log("info", f"Population has been filled with {self._init_size - self.size} random ind")
