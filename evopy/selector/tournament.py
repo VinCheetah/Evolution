@@ -1,10 +1,19 @@
-from evopy.selector import BaseSelector
-from evopy.population.base import BasePopulation
+"""
+Defines the TournamentSelector class.
+This class is used to select individuals by tournament.
+"""
+
+from evopy.selector.base import BaseSelector
+from evopy.population import BasePopulation
 
 
 class TournamentSelector(BaseSelector):
+    """
+    This is the Tournament selector.
+    Selects individuals by tournament.
+    """
 
-    _component_type: str = "Tournament"
+    BaseSelector.set_component_name("Tournament")
     _single_select: bool = True
 
     def __init__(self, options):
@@ -17,9 +26,11 @@ class TournamentSelector(BaseSelector):
             self._tournament_size = int(self._tournament_size_ratio * options.size_population)
 
     def single_select(self, idx: int, population: BasePopulation):
+        """
+        Select an individual by tournament.
+        """
         competitors = population.get_random(n=self._tournament_size)
         if population.exist_valid(competitors):
             winner = population.get_best_ind(competitors)
             return winner, True
-        else:
-            return population.get_random(sample=competitors, n=1)[0], True
+        return population.get_random(sample=competitors, n=1)[0], True

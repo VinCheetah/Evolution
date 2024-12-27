@@ -15,8 +15,8 @@ from evopy.selector.wheel import WheelSelector
 
 
 __all__ = [
-    "BaseMutator",
-    "PermuMutator",
-    "ChainMutator",
-    "BinaryChainMutator",   
+    "BaseSelector",
+    "EliteSelector",
+    "TournamentSelector",
+    "WheelSelector",
 ]
