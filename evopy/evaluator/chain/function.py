@@ -1,59 +1,81 @@
-from matplotlib import colors
-from evopy.evaluator import GraphicReprEvaluator, SingleEvaluator
-from evopy.individual import ChainIndividual
+"""
+Define the FunctionEvaluator class.
+This class is a subclass of the ChainEvaluator class.
+This evaluator is used to evaluate a function.
+"""
+
 import numpy as np
+from evopy.evaluator.chain.base import ChainEvaluator
+from evopy.evaluator.graphic import GraphicReprEvaluator
 
 
-class FunctionEvaluator(SingleEvaluator, GraphicReprEvaluator):
+class FunctionEvaluator(ChainEvaluator, GraphicReprEvaluator):
+    """
+    This is the FunctionEvaluator class.
+    """
 
-    _component_type: str = "Function"
+    ChainEvaluator.set_component_type("Function")
 
     def __init__(self, options, **kwargs):
-        #if options.individual_size == 2:
-        #    options.repr3D = True
+        self.allow_3d = True and options.individual_size == 2
+        if self.allow_3d:
+            options.repr3D = True
         options.update(kwargs)
-        SingleEvaluator.__init__(self, options)
+        ChainEvaluator.__init__(self, options)
         GraphicReprEvaluator.__init__(self, options)
         self._graph_num_points = 1000
-        self._individual_size = options.individual_size
         self._function = options.function
         self._min_value = options.min_value
         self._max_value = options.max_value
+        self._x = None
 
-    def _evaluate(self, individual: ChainIndividual) -> float:
-        return self._function(*individual._chain)
+    def _evaluate_chain(self, chain: list) -> float:
+        return self._function(*chain)
 
     def plot(self, ax, individual) -> None:
+        if self.allow_3d:
+            self.plot_2d(ax, individual)
+            return
+
         curves = self.get_curves(ax)
-        for i in range(self._individual_size):
-            func = lambda x: self._function(*individual._chain[:i], x, *individual._chain[i+1:])
-            curves[f"point-{i}"].set_data(individual._chain[i], self._function(*individual._chain))
-            curves[f"unfixed-{i}"].set_ydata(func(self.X))
+        chain = individual.get_chain()
+        for idx in range(self.ind_size(individual)):
+            curves[f"point-{idx}"].set_data(chain[idx], self._function(*chain))
+            y_val = map(lambda x, idx=idx: self._function(*chain[:idx], x, *chain[idx+1:]), self._x)
+            curves[f"unfixed-{idx}"].set_ydata(y_val)
         ax.relim()
         ax.autoscale_view()
 
-        #elif self._individual_size == 2:
-        #    self.get_curves(ax)["point"].set_data(*individual._chain)
-        #    self.get_curves(ax)["point"].set_3d_properties(self._function(*individual._chain))
-        #else:
-        #    raise ValueError("Invalid individual size")
-
     def init_plot(self, ax) -> None:
+        if self.allow_3d:
+            self.init_plot_2d(ax)
+            return
+
         ax.clear()
-        #self.set_limits(ax, self._min_value, self._max_value, -10, 10)
-        self.X = np.linspace(self._min_value, self._max_value, self._graph_num_points)
-        Y = np.zeros(self._graph_num_points)
+        self._x = np.linspace(self._min_value, self._max_value, self._graph_num_points)
         curves = {}
-        for i in range(self._individual_size):
-            curves[f"unfixed-{i}"] = ax.plot(self.X, self.X)[0]
-            curves[f"point-{i}"] = ax.plot(0, 0, marker="o", color=curves[f"unfixed-{i}"].get_color())[0]
+        for idx in range(self._size):
+            curves[f"unfixed-{idx}"] = ax.plot(self._x, self._x)[0]
+            curve_color = curves[f"unfixed-{idx}"].get_color()
+            curves[f"point-{idx}"] = ax.plot(0, 0, marker="o", color=curve_color)[0]
         self.set_curves(ax, curves)
 
+    def plot_2d(self, ax, individual) -> None:
+        """
+        Plot the individual in 2D.
+        """
+        chain = individual.get_chain()
+        self.get_curves(ax)["point"].set_data(*chain)
+        self.get_curves(ax)["point"].set_3d_properties(self._function(*chain))
 
-        #elif self._individual_size == 2:
-        #    x = np.linspace(self._min_value, self._max_value, 100)
-        #    y = np.linspace(self._min_value, self._max_value, 100)
-        #    X, Y = np.meshgrid(x, y)
-        #    Z = self._function(X, Y)
-        #    ax.plot_surface(X, Y, Z, cmap='viridis', alpha=0.8)
-        #    self.set_curves(ax, {"point": ax.plot(self._min_value, self._min_value, self._function(self._min_value, self._min_value), color="blue", marker="o")[0]})
+    def init_plot_2d(self, ax) -> None:
+        """
+        Initialize the plot for the 2D representation.
+        """
+        x1 = np.linspace(self._min_value, self._max_value, self._graph_num_points)
+        y1 = np.linspace(self._min_value, self._max_value, self._graph_num_points)
+        x, y = np.meshgrid(x1, y1)
+        ax.plot_surface(x, y, self._function(x, y), cmap='viridis', alpha=0.8)
+        mean = (self._min_value + self._max_value) / 2
+        point = ax.plot(mean, mean, self._function(mean, mean), color="blue", marker="o")
+        self.set_curves(ax, {"point": point[0]})

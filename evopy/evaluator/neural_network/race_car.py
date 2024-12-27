@@ -1,9 +1,19 @@
-from evopy.evaluator import NNEvaluator
+"""
+Define the RaceCarEvaluator
+"""
+
+import numpy as np
+from scipy.interpolate import CubicSpline
+import matplotlib.pyplot as plt
+from evopy.evaluator.neural_network.base import NNEvaluator
 
 
 class RaceCarEvaluator(NNEvaluator):
+    """ 
+    This is the RacecarEvaluator
+    """
 
-    _component_type: str = "RaceCar"
+    NNEvaluator.set_component_type("RaceCar")
 
     def __init__(self, options, **kwargs):
         options.ascending_order = False
@@ -39,10 +49,6 @@ class RaceCarEvaluator(NNEvaluator):
         NNEvaluator.init_plot(self, ax1)
         self._circuit.init_plot(ax2)
 
-
-import numpy as np
-from scipy.interpolate import CubicSpline
-import matplotlib.pyplot as plt
 
 class Car:
 

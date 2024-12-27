@@ -1,22 +1,26 @@
-from evopy.evaluator.base import BaseEvaluator
-from evopy.population.base import BasePopulation
-from evopy.individual import BaseIndividual
-from abc import abstractmethod
+"""
+Define the GroupEvaluator class.
+This class is a subclass of the BaseEvaluator class.
+This evaluator is used to evaluate a group of individuals at the same time.
+"""
+
 from time import time
+from abc import abstractmethod
+from evopy.evaluator.base import BaseEvaluator
+from evopy.population import BasePopulation
+from evopy.individual import BaseIndividual
 
 
 class GroupEvaluator(BaseEvaluator):
+    """
+    This is the GroupEvaluator class.
+    This class is a subclass of the BaseEvaluator class.
+    This evaluator is used to evaluate a group of individuals at the same time.
+    """
 
-    _component_type: str = "Group"
-
-    def __init__(self, options, **kwargs):
-        options.update(kwargs)
-        BaseEvaluator.__init__(self, options)
+    BaseEvaluator.set_component_type("Group")
 
     def _evaluate_pop(self, population: BasePopulation):
-        """
-        Evaluate individuals from the population
-        """
         self._evaluated = population.size
         start = time()
         self._evaluate(population)
@@ -28,8 +32,12 @@ class GroupEvaluator(BaseEvaluator):
 
     @abstractmethod
     def _evaluate(self, population: BasePopulation) -> None:
-        ...
+        """
+        Evaluate all the group of individuals in the population
+        """
 
     @abstractmethod
     def _get_evaluation(self, individual: BaseIndividual) -> tuple[float, str]:
-        ...
+        """
+        Get the evaluation of an individual
+        """

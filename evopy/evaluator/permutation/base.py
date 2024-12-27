@@ -1,22 +1,28 @@
-from evopy.evaluator import SingleEvaluator
-from evopy.individual import PermuIndividual
-import numpy as np
-import numpy.typing as npt
+"""
+Deine the PermuEvaluator class.
+The PermuEvaluator class is an abstract class that inherits from the SingleEvaluator class.
+It is used to evaluate permutation individuals.
+"""
 
+from abc import abstractmethod
+from evopy.evaluator.single import SingleEvaluator
+from evopy.individual import PermuIndividual
 
 class PermuEvaluator(SingleEvaluator):
+    """
+    This is the PermuEvaluator class.
+    This class is a subclass of the SingleEvaluator class.
+    It is used to evaluate permutation individuals.
+    """
 
-    _component_type: str = "Permu"
-
-    def __init__(self, options, **kwargs):
-        options.update(kwargs)
-        SingleEvaluator.__init__(self, options)
-        self._size: int = options.individual_size
-        self.weights: npt.NDArray = options.weights if options.weights is not None else np.random.rand(self._size, self._size)
+    SingleEvaluator.set_component_type("Permutation")
+    SingleEvaluator.add_requirement("individual", PermuIndividual)
 
     def _evaluate(self, individual: PermuIndividual) -> float:
-        tot = 0.
-        for i in range(len(individual)-1):
-            tot += self.weights[individual[i], individual[i+1]]
-        tot += self.weights[individual[len(individual) - 1], individual[0]]
-        return tot
+        return self._evaluate_permu(individual.get_permutation())
+
+    @abstractmethod
+    def _evaluate_permu(self, permutation: list) -> float:
+        """
+        Evaluate the permutation
+        """
