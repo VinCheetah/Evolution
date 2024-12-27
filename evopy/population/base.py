@@ -24,7 +24,7 @@ class BasePopulation(BaseComponent):
         self._individual_type: type[BaseIndividual] = options.individual
         self._init_size: int = options.size_population
         self._keep_sorted: bool = options.keep_sorted
-        self._ascending_order: bool = options.ascending_order
+        self.ascending_order: bool = options.ascending_order
         self._complete_population: bool = options.complete_population
         self._strict_size: bool = options.strict_size
         self._immigration_rate: float = options.immigration_rate
@@ -168,7 +168,7 @@ class BasePopulation(BaseComponent):
         Get the rank of the fitness in the population
         """
         fitness_values = self.fitness_values()
-        if self._ascending_order:
+        if self.ascending_order:
             return np.searchsorted(fitness_values, fit)
         fitness_values = fitness_values[::-1]
         return self.size - np.searchsorted(fitness_values, fit) - 1
@@ -194,7 +194,7 @@ class BasePopulation(BaseComponent):
         Get the indices of the sorted scores
         """
         c_scores = scores
-        if not self._ascending_order:
+        if not self.ascending_order:
             c_scores = -scores
         return np.argsort(c_scores)
 
@@ -227,7 +227,7 @@ class BasePopulation(BaseComponent):
         if sample is None and self._sorted:
             return self._population[0]
         sample = sample if sample is not None else self._population
-        extrem_fun = min if self._ascending_order else max
+        extrem_fun = min if self.ascending_order else max
         top = extrem_fun(sample, key=lambda ind: ind.fitness)
         if not allow_invalid and not top.is_valid:
             raise ValueError("No valid individual in the sample")
@@ -244,7 +244,7 @@ class BasePopulation(BaseComponent):
                 if self._population[-1 - i].is_valid:
                     return self._population[-1 - i]
         sample = sample if sample is not None else self._population
-        extrem_fun = max if self._ascending_order else min
+        extrem_fun = max if self.ascending_order else min
         worst = extrem_fun(sample, key=lambda ind: ind.fitness)
         if not allow_invalid and not worst.is_valid:
             raise ValueError("No valid individual in the sample")
