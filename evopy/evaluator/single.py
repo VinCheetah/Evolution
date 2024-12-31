@@ -6,6 +6,7 @@ This evaluator is used to evaluate a single individual at a time.
 
 from abc import abstractmethod
 from time import time
+from typing import Optional, Callable
 from evopy.evaluator.base import BaseEvaluator
 from evopy.population import BasePopulation
 from evopy.utils.exceptions import IgnoreException
@@ -23,8 +24,8 @@ class SingleEvaluator(BaseEvaluator):
     def __init__(self, options, **kwargs):
         options.update(kwargs)
         BaseEvaluator.__init__(self, options)
-        has_eval_func = options.evaluation_func is not None
-        self._eval_func = options.evaluation_func if has_eval_func else self._evaluate
+        eval_func: Optional[Callable] = options.evaluation_func
+        self._eval_func: Callable = eval_func if eval_func is not None else self._evaluate
 
     def _evaluate_pop(self, population: BasePopulation):
         """

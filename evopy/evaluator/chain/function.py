@@ -4,6 +4,7 @@ This class is a subclass of the ChainEvaluator class.
 This evaluator is used to evaluate a function.
 """
 
+from typing import Union, Callable
 import numpy as np
 from evopy.evaluator.chain.base import ChainEvaluator
 from evopy.evaluator.graphic import GraphicReprEvaluator
@@ -17,16 +18,17 @@ class FunctionEvaluator(ChainEvaluator, GraphicReprEvaluator):
     ChainEvaluator.set_component_type("Function")
 
     def __init__(self, options, **kwargs):
-        self.allow_3d = True and options.individual_size == 2
+        ind_size: int = options.individual_size
+        self.allow_3d = True and ind_size == 2
         if self.allow_3d:
             options.repr3D = True
         options.update(kwargs)
         ChainEvaluator.__init__(self, options)
         GraphicReprEvaluator.__init__(self, options)
         self._graph_num_points = 1000
-        self._function = options.function
-        self._min_value = options.min_value
-        self._max_value = options.max_value
+        self._function: Callable = options.function
+        self._min_value: Union[float, int] = options.min_value
+        self._max_value: Union[float, int] = options.max_value
         self._x = None
 
     def _evaluate_chain(self, chain: list) -> float:

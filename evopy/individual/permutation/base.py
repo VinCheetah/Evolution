@@ -28,6 +28,12 @@ class PermuIndividual(BaseIndividual):
 
     def get_data(self) -> dict:
         return super().get_data() | {"permutation": self._permutation.copy()}
+    
+    def get_permutation(self) -> np.array:
+        """ 
+        Returns the permutation 
+        """
+        return self._permutation
 
     def _init(self, data):
         super()._init(data)

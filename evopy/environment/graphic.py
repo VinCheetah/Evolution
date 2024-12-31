@@ -20,7 +20,7 @@ class GraphicEnvironment(BaseEnvironment):
         if self.is_active("graphic"):
             self.graphic: BaseGraphic = options.graphic
 
-        super().__init__(options, **kwargs)
+        BaseEnvironment.__init__(self, options, **kwargs)
 
     def init_evolution(self):
         super().init_evolution()

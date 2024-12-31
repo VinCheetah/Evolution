@@ -27,7 +27,7 @@ class BaseGraphic(BaseComponent):
         self.env = env
         options.update(kwargs)
         BaseComponent.__init__(self, options)
-        self._repr3d_ind: bool = options.repr3D
+        self._repr3d_ind: bool = options.repr3d
         self._stop_graph: bool = options.stop_graph
         self._end_graph: bool = options.end_graph
         self._metrics_graph: bool = options.metrics_graph

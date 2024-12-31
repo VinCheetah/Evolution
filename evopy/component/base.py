@@ -84,6 +84,8 @@ class BaseComponent:
             name (str): Name of the requirement.
             component_class (type): Required component.
         """
+        if name not in cls._requirements:
+            cls._requirements[name] = []
         if component_class not in cls._requirements[name]:
             cls._requirements[name] = []
         cls._requirements[name].append(component_class)
@@ -139,9 +141,10 @@ class BaseComponent:
         """Representation of the component."""
         return f"{self._component_name}({self._component_type})"
 
-    def __str__(self) -> str:
+    @classmethod
+    def __str__(cls) -> str:
         """String representation of the component."""
-        return f"{self._component_name}({self._component_type})"
+        return f"{cls._component_name}({cls._component_type})"
 
     def _get_level_from_str(self, level):
         """

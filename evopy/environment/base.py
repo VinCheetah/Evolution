@@ -39,7 +39,7 @@ class BaseEnvironment(BaseComponent):
 
     def __init__(self, options, **kwargs):
         if isinstance(self, Mixin):
-            self._init_mixin(options)
+            self._init_mixin()
 
         self._reproducing: bool = options.evolution_record is not None
         if self._reproducing:
@@ -59,7 +59,7 @@ class BaseEnvironment(BaseComponent):
         options.update(kwargs)
         super().__init__(options)
 
-        self.individual: type[BaseIndividual] = options.individual
+        self.individual: BaseIndividual = options.individual
         self.crosser: BaseCrosser = options.crosser
         self.mutator: BaseMutator = options.mutator
         self.evaluator: BaseEvaluator = options.evaluator
@@ -67,6 +67,7 @@ class BaseEnvironment(BaseComponent):
         self.population: BasePopulation = options.population
         self.elite: BaseElite = options.elite
 
+        self.check_requirements()
         self._init_components()
 
         self._tracking: bool = self.is_active("tracking") and options.tracking
@@ -89,21 +90,31 @@ class BaseEnvironment(BaseComponent):
 
         if self._tracking:
             self._param_tracker: list[tuple[int, str, Any]] = []
-            self._record_folder = options.record_folder
-            self._record_subfolder = options.record_subfolder
-            self._record_file = options.record_file
-            self._record_file_spec = options.record_file_spec
+            self._record_folder: str = options.record_folder
+            self._record_subfolder: str = options.record_subfolder
+            self._record_file: str = options.record_file
+            self._record_file_spec: str = options.record_file_spec
 
         if self._reproducing and not options.from_beginning:
             self._n_gen = self._evolution_record["n_gen"]
             self._evo_time = self._evolution_record["evo_time"]
-     
+
     def _init_mixin(self):
         if not isinstance(self, Mixin):
             return
-        for comp_name, list_comp in self.get_requirements_mixin.items():
+        for comp_name, list_comp in self.get_requirements_mixin().items():
             for comp in list_comp:
+                continue
                 self.add_requirement(comp_name, comp)
+
+    def check_requirements(self):
+        for component_name, requirements_list in self._requirements.items():
+            component_class = getattr(self, component_name)
+            for requirement_class in requirements_list:
+                assert issubclass(component_class, requirement_class), (
+                    f"{component_name} requires {requirement_class.__name__}, but {component_class.__name__}"
+                    f"is not a subclass. Try to create an environment using the factory"
+                )
 
     @classmethod
     def add_component(cls, component_name: str):
@@ -261,7 +272,7 @@ class BaseEnvironment(BaseComponent):
     def _new_generation(self):
         """
         New generation process : selection, migration, mutation, crossover, evaluation, elite update
-        The generation is encapsulated with the initialisation and a log report 
+        The generation is encapsulated with the initialisation and a log report
         """
         self.init_new_generation()
         self._set_extra_time()

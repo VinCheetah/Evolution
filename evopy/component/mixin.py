@@ -34,12 +34,14 @@ class Mixin:
             name (str): Name of the requirement.
             component_class (type): Required component.
         """
+        if name not in cls._requirements:
+            cls._requirements[name] = []
         if component_class not in cls._requirements[name]:
             cls._requirements[name] = []
         cls._requirements[name].append(component_class)
 
     @classmethod
-    def get_requirements(cls) -> dict:
+    def get_requirements_mixin(cls) -> dict:
         """
         Get the requirements of the component.
         The requirements are necessary for the component to work.
@@ -75,7 +77,7 @@ class Mixin:
         cls._suggests[name].append(component_class)
 
     @classmethod
-    def get_suggests(cls) -> dict:
+    def get_suggests_mixin(cls) -> dict:
         """
         Get the suggestions of the component.
         The suggestions are optional for the component to work.

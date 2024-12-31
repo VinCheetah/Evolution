@@ -21,7 +21,7 @@ class BasePopulation(BaseComponent):
         options.update(kwargs)
         BaseComponent.__init__(self, options)
 
-        self._individual_type: type[BaseIndividual] = options.individual
+        self._individual_type: BaseIndividual = options.individual
         self._init_size: int = options.size_population
         self._keep_sorted: bool = options.keep_sorted
         self.ascending_order: bool = options.ascending_order
@@ -74,7 +74,7 @@ class BasePopulation(BaseComponent):
             )
             for _ in range(self._init_size - self.size):
                 self.add_individual(self._individual_type.create(self._options))
-            self._update_order()
+            self.update_order()
 
     def migrate(self):
         """
@@ -89,7 +89,7 @@ class BasePopulation(BaseComponent):
             )
             for _ in range(self._immigrated):
                 self.add_individual(self._individual_type.create(self._options))
-            self._update_order()
+            self.update_order()
 
     @property
     def size(self):
@@ -125,7 +125,7 @@ class BasePopulation(BaseComponent):
         ]
         self._sorted = False
 
-    def _update_order(self):
+    def update_order(self):
         """
         Update the order of the population
         """

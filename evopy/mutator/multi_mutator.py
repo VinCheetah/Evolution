@@ -18,9 +18,9 @@ class MultiMutator(BaseMutator):
     BaseMutator.set_component_type("Multi")
     _functions = []
 
-    def _mutate(self, individual):
+    def _mutate(self, individual) -> bool:
         random_mutator = choice(self._functions)
-        return random_mutator(individual)
+        return random_mutator(self, individual)
 
     @staticmethod
     def add_mutation_func():

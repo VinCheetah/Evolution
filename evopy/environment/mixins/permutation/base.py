@@ -10,7 +10,7 @@ from evopy.mutator import PermuMutator
 from evopy.crosser import PermuCrosser
 
 
-class PermuEnvironment(Mixin):
+class PermuMixin(Mixin):
     """
     This is the PermuEnvironment class.
     It is used to add permutation capabilities to the environment.

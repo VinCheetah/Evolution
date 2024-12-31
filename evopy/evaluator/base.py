@@ -22,8 +22,8 @@ class BaseEvaluator(BaseComponent):
         options.update(kwargs)
         BaseComponent.__init__(self, options)
 
-        self._size = options.individual_size
-        self._timeout: int = self._options.eval_timeout
+        self._size: int = options.individual_size
+        self._timeout: int = options.eval_timeout
         self._evaluated: int = 0
 
     @BaseComponent.record_time

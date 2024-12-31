@@ -5,6 +5,7 @@ This evaluator is used to evaluate a chain by separating it into two subsets.
 """
 
 import numpy as np
+from typing import Optional
 from evopy.evaluator.chain.base import ChainEvaluator
 from evopy.evaluator.graphic import GraphicReprEvaluator
 from evopy.individual import BinaryChainIndividual
@@ -22,11 +23,10 @@ class SeparatorEvaluator(ChainEvaluator, GraphicReprEvaluator):
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)
-        self.weights: np.array = options.separator_weights
-        if options.separator_weights is None:
-            options.separator_weights = self.create_weights(options.individual_size)
-        elif not isinstance(self.weights, np.ndarray):
-            options.separator_weights = np.array(options.separator_weights)
+        self.weights: Optional[list[float]] = options.separator_weights 
+        if weights is None:
+            weights = self.create_weights(options.individual_size)
+        self._weights: np.array = np.array(weights)
         ChainEvaluator.__init__(self, options)
         GraphicReprEvaluator.__init__(self, options)
 
@@ -36,7 +36,7 @@ class SeparatorEvaluator(ChainEvaluator, GraphicReprEvaluator):
 
     def create_weights(self, size) -> np.array:
         """
-        Create a random array of weights
+        Create a random array of _weights
         """
         w = np.random.random(size)
         return w / w.sum()
@@ -46,7 +46,7 @@ class SeparatorEvaluator(ChainEvaluator, GraphicReprEvaluator):
         Compute the value of the two subsets
         """
         s1, s2 = 0, 0
-        for weight, value in zip(self.weights, chain):
+        for weight, value in zip(self._weights, chain):
             if value == 1:
                 s1 += weight
             else:
@@ -58,7 +58,7 @@ class SeparatorEvaluator(ChainEvaluator, GraphicReprEvaluator):
         axs = self.create_subplots(ax, 2, 1)
         ax1, ax2 = axs[0, 0], axs[1, 0]
 
-        rects = ax1.bar(range(len(self.weights)), self.weights, color="grey", edgecolor="black")
+        rects = ax1.bar(range(len(self._weights)), self._weights, color="grey", edgecolor="black")
         self.set_curves(ax1, {"rects": rects})
 
         dict2 = {}
