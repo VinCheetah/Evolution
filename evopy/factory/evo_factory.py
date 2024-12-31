@@ -11,3 +11,9 @@ class EvoFactory:
 
     def get_options(self):
         return self.options
+    
+    def set_parameter(self, name, value):
+        self.options[name] = value
+        
+    def get_parameter(self, name):
+        return self.options[name]
