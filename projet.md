@@ -13,6 +13,7 @@ Ce projet a pour but de créer une pseudo librairie python permettant d'utiliser
 - [x] Créer un fichier `README.md`
 - [ ] Créer un fichier `requirements.txt`
 - [ ] Commenter le code proprement
+- [ ] Créer une `factory`
 
 ### Développement
 
@@ -24,6 +25,9 @@ Implique la mise en place d'une "reproduction" d'évolution avec un format préc
 - [x] Développer le type permutation
 - [ ] Développer le type arbre
 - [ ] Développer le type graphe
+- [ ] Ajouter l'interface de l'environement avec CustomTkinter
+- [ ] Ajouter l'interface de la factory avec CustomTkinter
+- [ ] Gérer les metadatas des options pour avoir une meilleure idée de leur usage (type / location)
 
 
 ### Idées
