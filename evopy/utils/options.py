@@ -4,7 +4,7 @@ class Options(dict):
 
     def __init__(self, *args, **kwargs):
         super(Options, self).__init__(*args, **kwargs)
-        self.__dict__ = self
+        #self.__dict__ = self
 
     def assert_subtype(self, key, cls):
         if not issubclass(self.__getattr__(key), cls):

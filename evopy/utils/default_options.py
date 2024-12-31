@@ -58,7 +58,7 @@ default_opts = Options({
     "individual_size": 100,
     "has_graph_repr": False,
     "has_graph_repr_init": False,
-    "repr3D": False,
+    "repr3d": False,
     # # Chain
     "min_value": -.5,
     "max_value": .5,
