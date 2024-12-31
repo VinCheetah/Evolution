@@ -21,17 +21,17 @@ Otherwise, you can create one using the factory.
 Once you have an environment, you can run the algorithm with the 'evolve' method.
 """
 
-from . import utils
-from . import individual
-from . import population
-from . import mutator
-from . import crosser
-from . import selector
-from . import elite
-from . import graphic
-from . import interface
-from . import environment
-from . import factory
+from evopy import utils
+from evopy import individual
+from evopy import population
+from evopy import mutator
+from evopy import crosser
+from evopy import selector
+from evopy import elite
+from evopy import graphic
+from evopy import interface
+from evopy import environment
+from evopy import factory
 
 
 __all__ = [
