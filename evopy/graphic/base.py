@@ -16,6 +16,22 @@ mpl.use("TkAgg")
 class BaseGraphic(BaseComponent):
     """
     Base class for all graphic components.
+
+    Parameters:
+        * repr3d (bool): Whether to use 3D representation for the graphic
+        * stop_graph (bool): Whether to stop the graph
+        * end_graph (bool): Whether to plot the final graph at the end of the evolution
+        * metrics_graph (bool): Whether to plot the metrics graph of the evolution
+        * best_elite (bool): Whether to plot the best individual from the elite
+        * best_pop (bool): Whether to plot the best individual from the population
+        * elite_size (int): The size of the elite
+            Secondary
+        * time_gestion (bool): Whether to plot the time gestion of the evolution
+        * max_gen_display (int): The maximum number of generations to display
+            Min: 1
+        * metrics_log_scale (bool): Whether to log the metrics
+
+
     """
 
     _component_type: str = "Base"
@@ -27,20 +43,19 @@ class BaseGraphic(BaseComponent):
         self.env = env
         options.update(kwargs)
         BaseComponent.__init__(self, options)
-        self._repr3d_ind: bool = options.repr3d
-        self._stop_graph: bool = options.stop_graph
-        self._end_graph: bool = options.end_graph
-        self._metrics_graph: bool = options.metrics_graph
+        self._repr3d_ind: bool = self._options.repr3d
+        self._end_graph: bool = self._options.end_graph
+        self._metrics_graph: bool = self._options.metrics_graph
         self._best_elite: bool = (
-            options.best_elite & (options.elite_size > 0) & options.has_graph_repr
+            self._options.best_elite & (self._options.elite_size > 0) & self._options.has_graph_repr
         )
-        self._best_pop: bool = options.best_pop & options.has_graph_repr
-        self._time_gestion: bool = options.time_gestion
+        self._best_pop: bool = self._options.best_pop & self._options.has_graph_repr
+        self._time_gestion: bool = self._options.time_gestion
         self._num_graphs: int = (
             self._metrics_graph + self._best_elite + self._best_pop + self._time_gestion
         )
         self._dic_axs: dict[str, tuple[int] | tuple[int, int]] = {}
-        self._max_gen_display: int = options.max_gen_display
+        self._max_gen_display: int = self._options.max_gen_display
 
         self._generations: list[int] = []
 
@@ -51,7 +66,7 @@ class BaseGraphic(BaseComponent):
             self._prev_pop_id: int = -1
 
         if self._metrics_graph:
-            self._log_scale: bool = options.metrics_log_scale
+            self._log_scale: bool = self._options.metrics_log_scale
             self._elite_evo_data: list[float] = []
             self._pop_evo_data: list[float] = []
             self._mean_evo_data: list[float] = []
@@ -68,7 +83,7 @@ class BaseGraphic(BaseComponent):
             self._time_ymax: float = 0
 
 
-        if self._num_graphs > 0 and not self._stop_graph:
+        if self._num_graphs > 0:
             self._init_graph()
 
     def _init_graph(self):
@@ -157,8 +172,6 @@ class BaseGraphic(BaseComponent):
         """
         Update the graphic representation.
         """
-        if self._stop_graph:
-            return
 
         self._generations.append(self.env.get_generation())
 

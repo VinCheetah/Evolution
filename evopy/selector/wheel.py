@@ -13,20 +13,27 @@ class WheelSelector(BaseSelector):
     """
     This is the Wheel selector.
     Selects individuals by wheel.
+
+    Parameters:
+        * wheel_selection_mode (str): The function used to determine the probabilities to pick individuals
+            Choices: softmax, linear, power
+        * wheel_power (int): The power chosen to determine the probabilities to pick individuals. It is used only for 'power' mode
+            Min: 1
     """
 
     BaseSelector.set_component_type("Wheel")
     _single_select: bool = True
 
-    def __init__(self, options):
+    def __init__(self, options, **kwargs):
+        options.update(kwargs)
         super().__init__(options)
-        self._mode: str = options.wheel_selection_mode
-        self._power: int = options.wheel_power
+        self._mode: str = self._options.wheel_selection_mode
+        self._power: int = self._options.wheel_power
         self._min_fit: float
         self._max_fit: float
-        self.wheel_values: np.ndarray
-        self.fitness_values: np.ndarray
-        self.wheel: np.ndarray
+        self.wheel_values: np.ndarray = ...
+        self.fitness_values: np.ndarray = ...
+        self.wheel: np.ndarray = ...
 
     def _init_selection(self, population: BasePopulation):
         """

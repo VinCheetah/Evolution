@@ -11,6 +11,14 @@ from evopy.individual.chain.base import ChainIndividual
 class BinaryChainIndividual(ChainIndividual):
     """
     Base class for all individuals with a binary chain of values.
+
+    Parameters:
+        type_value (type): The type of the individual
+            Fixed: int
+        * min_value (float): The minimum value of the chain's elements
+            Fixed: 0
+        * max_value (float): The maximum value of the chain's elements
+            Fixed: 1
     """
 
     ChainIndividual.set_component_type("BinaryChain")

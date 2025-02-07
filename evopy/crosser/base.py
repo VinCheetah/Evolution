@@ -15,6 +15,11 @@ from evopy.individual import BaseIndividual
 class BaseCrosser(BaseComponent):
     """
     Base class for all crossers.
+
+    Parameters:
+        * cross_prob (float): Probability of performing a crossover.
+            Min: 0.
+            Max: 1.
     """
 
     BaseComponent.set_component_name("Crosser")
@@ -24,7 +29,7 @@ class BaseCrosser(BaseComponent):
     def __init__(self, options, **kwargs):
         options.update(kwargs)
         BaseComponent.__init__(self, options)
-        self._cross_prob: float = options.cross_prob
+        self._cross_prob: float = self._options.cross_prob
         self._crossed: int = 0
 
     def num_crossed_individuals(self):

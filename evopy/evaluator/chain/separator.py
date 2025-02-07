@@ -16,6 +16,9 @@ class SeparatorEvaluator(ChainEvaluator, GraphicReprEvaluator):
     This is the SeparatorEvaluator class.
     This class is a subclass of the ChainEvaluator class.
     This evaluator is used to evaluate a chain by separating it into two subsets.
+
+    Parameters:
+        * separator_weights (random | list[float]): Weights used to separate the chain into two subsets.
     """
 
     ChainEvaluator.set_component_type("Separator")
@@ -23,8 +26,8 @@ class SeparatorEvaluator(ChainEvaluator, GraphicReprEvaluator):
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)
-        self.weights: Optional[list[float]] = options.separator_weights 
-        if weights is None:
+        weights = options.separator_weights
+        if self.is_random(weights):
             weights = self.create_weights(options.individual_size)
         self._weights: np.array = np.array(weights)
         ChainEvaluator.__init__(self, options)

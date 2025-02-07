@@ -12,6 +12,8 @@ class BinaryChainMutator(ChainMutator):
     """
     This is the BinaryChainMutator class.
     This mutator flip the value of a single element in the chain.
+
+    Parameters:
     """
 
     ChainMutator.set_component_type("BinaryChain")

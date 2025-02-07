@@ -10,13 +10,16 @@ from evopy.individual.base import BaseIndividual
 class PermuIndividual(BaseIndividual):
     """
     Base class for permutation individuals
+
+    Parameters:
+        * individual_size (int): The size of the permutation of an individual
     """
 
     BaseIndividual.set_component_type("Permutation")
 
     def __init__(self, options):
         super().__init__(options)
-        self._size: int = options.individual_size
+        self._size: int = self._options.individual_size
 
         self._permutation: npt.NDArray[np.int_]
         self._permutation = np.random.permutation(self._size)

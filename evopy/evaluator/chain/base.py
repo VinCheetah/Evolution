@@ -12,6 +12,8 @@ class ChainEvaluator(SingleEvaluator):
     """
     This is the ChainEvaluator class.
     This class is a subclass of the SingleEvaluator class.
+
+    Parameters:
     """
 
     SingleEvaluator.set_component_type("Chain")

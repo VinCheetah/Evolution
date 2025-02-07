@@ -4,27 +4,32 @@ Defines the base class for components, providing logging and timing utilities.
 
 from time import time
 from functools import wraps
+from evopy.utils.options import Options
 from evopy.utils.logger import create_logger, logg_levels_str
+from evopy.utils.evo_types import Random, Unknown
+from typing import Optional
 
 
 class BaseComponent:
-    """Base class for components, providing logging and timing utilities."""
+    """Base class for components, providing logging and timing utilities.
+
+    Parameters:
+    """
 
     _logger = create_logger()
+    _requirements: dict[str, list] = {}
 
-    _component_name: str = "Component"
-    _component_type: str = "Base"
-    _requirements: dict[list] = {}
-    init_requires_environment: bool = False
-
-    def __init__(self, options):
+    def __init__(self, options: Options, component_name: Optional[str]=None, component_type: Optional[str]=None):
         """
         Initialize the component with options.
 
         Args:
-            options (dict): Configuration options for the component.
+            options (Options): Configuration options for the component.
         """
-        self._options = options
+        self._options: Options = options
+        self._component_name: str = "Component" if component_name is None else component_name
+        self._component_type: str = "Base" if component_type is None else component_type
+        init_requires_environment: bool = False
         self._duration: float = 0
 
     @staticmethod
@@ -146,7 +151,8 @@ class BaseComponent:
         """String representation of the component."""
         return f"{cls._component_name}({cls._component_type})"
 
-    def _get_level_from_str(self, level):
+    @staticmethod
+    def _get_level_from_str(level):
         """
         Convert a log level string to the corresponding logging level.
 
@@ -176,3 +182,11 @@ class BaseComponent:
         log_level = self._get_level_from_str(level)
         msg = f"{self._component_name}({self._component_type}) -- {msg}"
         self._logger.log(log_level, msg)
+
+    @staticmethod
+    def is_random(value):
+        return isinstance(value, Random)
+
+    @staticmethod
+    def is_unknown(value):
+        return isinstance(value, Unknown)

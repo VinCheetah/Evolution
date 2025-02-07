@@ -12,6 +12,8 @@ from evopy.individual import PermuIndividual
 class PermuCrosser(BaseCrosser):
     """
     Base class for permutation crossers.
+
+    Parameters:
     """
 
     BaseCrosser.set_component_type("Permutation")

@@ -11,6 +11,10 @@ class InterfaceEnvironment(BaseEnvironment):
     """
     This is the InterfaceEnvironment class, a subclass of BaseEnvironment.
     It is used to add interface capabilities to the environment.
+
+    Parameters:
+        * interface (BaseInterface): the interface class to use
+        * active_interface (bool): whether this interface is active or not
     """
 
     _active_interface: bool = True
@@ -38,7 +42,7 @@ class InterfaceEnvironment(BaseEnvironment):
         """
         Updates the interface component.
         """
-        if self.is_active("intrerface"):
+        if self.is_active("interface"):
             self.log("info", "Interface is updating")
             self.interface.update()
 

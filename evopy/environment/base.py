@@ -20,7 +20,41 @@ from evopy.elite import BaseElite
 
 
 class BaseEnvironment(BaseComponent):
-    """Base class for environment"""
+    """
+    Base class for environment
+
+    Parameters:
+        * individual (BaseIndividual): Class of the individuals
+        * population (BasePopulation): Class of the population
+        * evaluator (BaseEvaluator): Class of the evaluator
+        * selector (BaseSelector): Class of the selector
+        * crosser (BaseCrosser): Class of the crosser
+        * mutator (BaseMutator): Class of the mutator
+        * elite (BaseElite): Class of the elite
+
+        * timeout (int): Maximal time to run an evolution in seconds. -1 means no timeout
+            Min: -1
+        * max_gen (int): Maximum number of generations
+            Min: 0
+        * random_seed (int): Random seed
+            Min: 0
+
+        * create_report (bool): Whether to create report for each generation
+        * reproducing (bool): Reproduce an evolution using a previous record
+        * from_beginning (bool): Whether to start from beginning if there is a reproducing record
+        * evolution_record (dict): Evolution record of an evolution. Should be given at the end of a tracking evolution
+        * tracking (bool): Record the evolution
+
+        * record_folder (str): Folder where to save the records
+        * record_subfolder (str): Subfolder where to save the records
+        * record_file (str): File where to save the records
+        * record_file_spec (str): Spec of the file where to save the records
+
+    Attributes
+    ----------
+        * God damnnnnn(bool): Woaw
+            Dman
+    """
 
     BaseComponent.set_component_name("Environment")
     BaseComponent.set_component_type("Base")
@@ -41,40 +75,38 @@ class BaseEnvironment(BaseComponent):
         if isinstance(self, Mixin):
             self._init_mixin()
 
-        self._reproducing: bool = options.evolution_record is not None
-        if self._reproducing:
-            self._evolution_record: dict = options.evolution_record
-            self._evolution_process: list[tuple[int, "str", Any]] = self._evolution_record[
-                "evolution_process"
-            ]
-            self._evolution_process_idx: int = 0
-            options.update(self._evolution_record["options"])
-            if not options.from_beginning:
-                options.population = self._evolution_record["last_population"]
+        self._options.update(kwargs)
+        super().__init__(self._options)
 
-        self.random_seed: int = options.random_seed
+        self.random_seed: int = self._options.random_seed
         random.seed(self.random_seed)
         np.random.seed(self.random_seed)
 
-        options.update(kwargs)
-        super().__init__(options)
+        self._reproducing: bool = self._options.evolution_record is not None
+        if self._reproducing:
+            self._evolution_record: dict = self._options.evolution_record
+            self._evolution_process: list[tuple[int, str, Any]] = self._evolution_record["evolution_process"]
+            self._evolution_process_idx: int = 0
+            self._options.update(self._evolution_record["options"])
+            if not self._options.from_beginning:
+                self._options.population = self._evolution_record["last_population"]
 
-        self.individual: BaseIndividual = options.individual
-        self.crosser: BaseCrosser = options.crosser
-        self.mutator: BaseMutator = options.mutator
-        self.evaluator: BaseEvaluator = options.evaluator
-        self.selector: BaseSelector = options.selector
-        self.population: BasePopulation = options.population
-        self.elite: BaseElite = options.elite
+        self.individual: BaseIndividual = self._options.individual
+        self.crosser: BaseCrosser = self._options.crosser
+        self.mutator: BaseMutator = self._options.mutator
+        self.evaluator: BaseEvaluator = self._options.evaluator
+        self.selector: BaseSelector = self._options.selector
+        self.population: BasePopulation = self._options.population
+        self.elite: BaseElite = self._options.elite
 
         self.check_requirements()
         self._init_components()
 
-        self._tracking: bool = self.is_active("tracking") and options.tracking
+        self._tracking: bool = self.is_active("tracking") and self._options.tracking
 
-        self._timeout: int = options.timeout
-        self._max_gen: int = options.max_gen
-        self._create_report: bool = options.create_report
+        self._timeout: int = self._options.timeout
+        self._max_gen: int = self._options.max_gen
+        self._create_report: bool = self._options.create_report
 
         self._evolution_started: bool = False
         self._evolution_over: bool = False
@@ -90,12 +122,12 @@ class BaseEnvironment(BaseComponent):
 
         if self._tracking:
             self._param_tracker: list[tuple[int, str, Any]] = []
-            self._record_folder: str = options.record_folder
-            self._record_subfolder: str = options.record_subfolder
-            self._record_file: str = options.record_file
-            self._record_file_spec: str = options.record_file_spec
+            self._record_folder: str = self._options.record_folder
+            self._record_subfolder: str = self._options.record_subfolder
+            self._record_file: str = self._options.record_file
+            self._record_file_spec: str = self._options.record_file_spec
 
-        if self._reproducing and not options.from_beginning:
+        if self._reproducing and not self._options.from_beginning:
             self._n_gen = self._evolution_record["n_gen"]
             self._evo_time = self._evolution_record["evo_time"]
 

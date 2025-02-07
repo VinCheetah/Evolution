@@ -13,6 +13,11 @@ from evopy.individual import ChainIndividual
 class ChainCrosser(MultiPointCrosser, BaseCrosser):
     """ 
     Base crosser class for ChainIndividuals.
+
+    Parameters:
+        * num_points (int): Number of points to cross over
+            Min: 1
+            Fixed: 2
     """
 
     BaseCrosser.set_component_type("Chain")
@@ -20,7 +25,8 @@ class ChainCrosser(MultiPointCrosser, BaseCrosser):
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)
-        MultiPointCrosser.__init__(self, options, num_points=2)
+        options.num_points = 2
+        MultiPointCrosser.__init__(self, options)
         BaseCrosser.__init__(self, options)
 
     def _cross_points(self, data: dict, ind2: ChainIndividual, *idx) -> dict:

@@ -12,6 +12,13 @@ class BaseEvaluator(BaseComponent):
     """
     This is the BaseEvaluator class.
     The evaluator component is responsible for evaluating the individuals in the population.
+
+    Parameters:
+        * individual_size (int): The size of the individual
+            Min: 0
+        * eval_timeout (int): The maximum time to wait for a single evaluation. -1 is no limit.
+            Min: -1
+
     """
 
     BaseComponent.set_component_name("Evaluator")
@@ -22,8 +29,8 @@ class BaseEvaluator(BaseComponent):
         options.update(kwargs)
         BaseComponent.__init__(self, options)
 
-        self._size: int = options.individual_size
-        self._timeout: int = options.eval_timeout
+        self._size: int = self._options.individual_size
+        self._timeout: int = self._options.eval_timeout
         self._evaluated: int = 0
 
     @BaseComponent.record_time

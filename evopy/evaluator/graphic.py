@@ -13,6 +13,11 @@ import numpy as np
 class GraphicReprEvaluator:
     """
     This is the GraphicReprEvaluator
+
+    Parameters:
+        * has_graph_repr (bool): Whether an evaluator has a graph_repr
+            Fixed
+        * repr3d (bool): Whether the evaluator should use a 3D representation
     """
 
     _subaxs: dict = {}

@@ -8,6 +8,7 @@ from evopy.population import BasePopulation
 from evopy.elite import BaseElite
 from evopy.graphic import BaseGraphic
 from evopy.interface.base import BaseInterface
+from evopy.utils.evo_types import Randomized
 
 
 
@@ -84,11 +85,11 @@ default_opts = Options({
     "unvalid_fit_value": 0,
     "unevaluated_time": 0,
     # # PermuEval
-    "weights": None,
+    "weights": Randomized,
     # # # TSP
-    "cities": None,
+    "cities": Randomized,
     # # # Separator
-    "separator_weights": None,
+    "separator_weights": Randomized,
 
     # Graphic
     "active_graphic": True,

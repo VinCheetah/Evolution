@@ -12,11 +12,9 @@ class BaseIndividual(BaseComponent):
     """
     Base class for all individuals.
 
-
-    Attributes
-    ----------
-    _id_counter : int
-        The counter for the id of the individuals.
+    Parameters:
+        * invalid_fit_value (float) : Fitness value for an individual that could not be fit
+        * unevaluated_time (float) : Time for an individual that could not be evaluated
     """
 
     BaseComponent.set_component_name("Individual")
@@ -45,7 +43,7 @@ class BaseIndividual(BaseComponent):
 
         Parameters
         ----------
-        options : dict
+        options : Options
             The options of the individual.
         data : dict
             The data of the individual.
@@ -146,9 +144,9 @@ class BaseIndividual(BaseComponent):
     @property
     def fitness(self) -> float:
         """
-        Returns the fitness of the individual if it is valid, else the unvalid_fit_value.
+        Returns the fitness of the individual if it is valid, else the invalid_fit_value.
         """
-        return self._evaluation[0] if self.is_valid else self._options.unvalid_fit_value
+        return self._evaluation[0] if self.is_valid else self._options.invalid_fit_value
 
     @property
     def eval_time(self) -> float:
@@ -244,7 +242,7 @@ class BaseIndividual(BaseComponent):
         raise NotImplementedError
 
     def __eq__(self, other):
-        return self._id == other._id
+        return self._id == other.get_id()
 
     def __lt__(self, other):
         return self.fitness < other.fitness

@@ -16,6 +16,8 @@ class GroupEvaluator(BaseEvaluator):
     This is the GroupEvaluator class.
     This class is a subclass of the BaseEvaluator class.
     This evaluator is used to evaluate a group of individuals at the same time.
+
+    Parameters:
     """
 
     BaseEvaluator.set_component_type("Group")

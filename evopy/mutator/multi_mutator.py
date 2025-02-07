@@ -13,6 +13,8 @@ class MultiMutator(BaseMutator):
     """
     MultiMutator class.
     This class permits to enable multiple mutators at the same time.
+
+    Parameters:
     """
 
     BaseMutator.set_component_type("Multi")

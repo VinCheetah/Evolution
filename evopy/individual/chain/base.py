@@ -14,6 +14,14 @@ from numpy.typing import NDArray
 class ChainIndividual(BaseIndividual):
     """
     Base class for all individuals with a chain of values.
+
+    Parameters:
+        * individual_size (int): The size of the chain of an individual
+            Min: 0
+        * type_value (type): The type of the chain's elements
+            Choices: int, float
+        * min_value (float): The minimum value of the chain's elements
+        * max_value (float): The maximum value of the chain's elements
     """
 
     BaseIndividual.set_component_type("Chain")
@@ -22,11 +30,11 @@ class ChainIndividual(BaseIndividual):
         options.update(kwargs)
         super().__init__(options)
 
-        self._type_value: type = options.type_value
-        self._min_value: int = options.min_value
-        self._max_value: int = options.max_value
+        self._type_value: type = self._options.type_value
+        self._min_value: int = self._options.min_value
+        self._max_value: int = self._options.max_value
 
-        self._size: int = options.individual_size
+        self._size: int = self._options.individual_size
         match self._type_value:
             case builtins.int:
                 self._chain = np.random.randint(self._min_value, self._max_value + 1, self._size)

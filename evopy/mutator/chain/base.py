@@ -13,6 +13,8 @@ class ChainMutator(BaseMutator):
     """
     Mutator for ChainIndividuals.
     This mutator changes the value of a single element in the chain.
+
+    Parameters:
     """
 
     BaseMutator.set_component_type("Chain")

@@ -8,6 +8,7 @@ import numpy as np
 from evopy.evaluator.permutation.base import PermuEvaluator
 from evopy.evaluator.graphic import GraphicReprEvaluator
 from evopy.individual import PermuIndividual
+from evopy.utils.evo_types import Random
 
 
 class SalesManEvaluator(PermuEvaluator, GraphicReprEvaluator):
@@ -20,7 +21,7 @@ class SalesManEvaluator(PermuEvaluator, GraphicReprEvaluator):
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)
-        self.cities = options.cities or self.create_cities(options.individual_size)
+        self.cities = options.cities if options.cities == Random else self.create_cities(options.individual_size)
         options.cities = self.cities
         self.weights = options.weights = self.create_weights()
         options.individual_size = len(self.cities)

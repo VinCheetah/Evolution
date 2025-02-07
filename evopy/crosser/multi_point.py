@@ -15,21 +15,20 @@ class MultiPointCrosser(BaseCrosser):
     MultiPointCrosser class.
     This class is an optional class for a crosser.
     It permits to perform the crossover operation on multiple points.
-    
-    Attributes
-    ----------
-    _num_points : int
-        The number of points for the crossover operation.
-    _num_cross : int
-        The number of crossovers to perform.
+
+    Parameters:
+        * num_points (int): The number of points for the crossover operation.
+            Min: 0
+        * num_cross (int): The number of crossovers to perform.
+            Min: 0
     """
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)
         BaseCrosser.__init__(self, options)
 
-        self._num_points: int = options.num_points
-        self._num_cross: int = options.num_cross
+        self._num_points: int = self._options.num_points
+        self._num_cross: int = self._options.num_cross
 
     def _cross(self, ind1: BaseIndividual, ind2: BaseIndividual) -> dict:
         """ 

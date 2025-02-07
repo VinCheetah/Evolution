@@ -13,29 +13,36 @@ from evopy.evaluator.graphic import GraphicReprEvaluator
 class FunctionEvaluator(ChainEvaluator, GraphicReprEvaluator):
     """
     This is the FunctionEvaluator class.
+
+    Parameters:
+        * individual_size (int): The size of the individual to be evaluated
+            Min: 0
+        * function (Callable): The function to be evaluated
+        * min_value (float): The minimum value on which to evaluate the function
+        * max_value (float): The maximum value on which to evaluate the function
+        * allow3D (bool): Whether the function is represented in 3D space
     """
 
     ChainEvaluator.set_component_type("Function")
 
     def __init__(self, options, **kwargs):
         ind_size: int = options.individual_size
-        self.allow_3d = True and ind_size == 2
-        if self.allow_3d:
+        if options.allow3D and options.individual_size == 2:
             options.repr3D = True
         options.update(kwargs)
         ChainEvaluator.__init__(self, options)
         GraphicReprEvaluator.__init__(self, options)
         self._graph_num_points = 1000
-        self._function: Callable = options.function
-        self._min_value: Union[float, int] = options.min_value
-        self._max_value: Union[float, int] = options.max_value
+        self._function: Callable = self._options.function
+        self._min_value: Union[float, int] = self._options.min_value
+        self._max_value: Union[float, int] = self._options.max_value
         self._x = None
 
     def _evaluate_chain(self, chain: list) -> float:
         return self._function(*chain)
 
     def plot(self, ax, individual) -> None:
-        if self.allow_3d:
+        if self._options.repr3D:
             self.plot_2d(ax, individual)
             return
 
@@ -49,7 +56,7 @@ class FunctionEvaluator(ChainEvaluator, GraphicReprEvaluator):
         ax.autoscale_view()
 
     def init_plot(self, ax) -> None:
-        if self.allow_3d:
+        if self._options.repr3D:
             self.init_plot_2d(ax)
             return
 

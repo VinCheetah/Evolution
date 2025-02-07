@@ -15,6 +15,19 @@ class BaseSelector(BaseComponent):
     """
     Base class for all selectors.
     Selectors are used to select individuals from a population.
+
+    Parameters:
+        * selection_ratio (float): Ratio of individuals to select
+            Min: 0
+            Max: 1
+        * allow_invalid (bool): Whether to allow invalid individuals in the next population
+        * limit_size (bool): Whether to limit the number of individuals to the size of the next population
+        * keep_best (bool): Whether to keep the best individual in the next population
+
+        * max_single_select_fail (int): Maximum number of try to select a single individual
+            Min: 1
+        * max_group_select_fail (int): Maximum number of try to select a group of individuals
+            Min: 1
     """
 
     BaseComponent.set_component_name("Selector")
@@ -26,15 +39,15 @@ class BaseSelector(BaseComponent):
     def __init__(self, options, **kwargs):
         options.update(kwargs)
         BaseComponent.__init__(self, options)
-        self._selection_ratio: float = options.selection_ratio
+        self._selection_ratio: float = self._options.selection_ratio
 
-        self._allow_invalid: bool = options.allow_invalid
-        self._allow_copies: bool = options.allow_copies
-        self._limit_size: bool = options.limit_size
-        self._keep_best: bool = options.keep_best
+        self._allow_invalid: bool = self._options.allow_invalid
+        self._allow_copies: bool = self._options.allow_copies
+        self._limit_size: bool = self._options.limit_size
+        self._keep_best: bool = self._options.keep_best
 
-        self._max_single_select_fail: int = options.max_single_select_fail
-        self._max_group_select_fail: int = options.max_group_select_fail
+        self._max_single_select_fail: int = self._options.max_single_select_fail
+        self._max_group_select_fail: int = self._options.max_group_select_fail
 
         self._pre_selected_set: set = set()
         self._compute_selection_set: bool = not self._allow_invalid or self._keep_best

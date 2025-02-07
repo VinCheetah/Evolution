@@ -11,6 +11,8 @@ from evopy.individual import PermuIndividual
 class PermuMutator(MultiMutator):
     """
     Base class for permutation mutators.
+
+    Parameters:
     """
 
     mutation_modes = ["multi", "single", "swap", "reverse", "shuffle"]

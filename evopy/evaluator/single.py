@@ -17,6 +17,9 @@ class SingleEvaluator(BaseEvaluator):
     This is the SingleEvaluator class.
     This class is a subclass of the BaseEvaluator class.
     This evaluator is used to evaluate a single individual at a time.
+
+    Parameters:
+        * evaluation_func (Optional[Callable]): The function to be called to evaluate an individual at a time. If not provided, the evaluation function is used.
     """
 
     BaseEvaluator.set_component_type("Single")
@@ -24,7 +27,7 @@ class SingleEvaluator(BaseEvaluator):
     def __init__(self, options, **kwargs):
         options.update(kwargs)
         BaseEvaluator.__init__(self, options)
-        eval_func: Optional[Callable] = options.evaluation_func
+        eval_func: Optional[Callable] = self._options.evaluation_func
         self._eval_func: Callable = eval_func if eval_func is not None else self._evaluate
 
     def _evaluate_pop(self, population: BasePopulation):

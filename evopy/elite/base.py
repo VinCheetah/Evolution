@@ -12,6 +12,10 @@ from evopy.population import BasePopulation
 class BaseElite(BaseComponent):
     """
     Base class for the Elite component.
+
+    Parameters:
+        * elite_size (int): The number of individuals in the elite set.
+            Min: 0
     """
 
     BaseComponent.set_component_name("Elite")

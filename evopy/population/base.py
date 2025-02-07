@@ -12,6 +12,18 @@ from evopy.individual import BaseIndividual
 class BasePopulation(BaseComponent):
     """
     Base class for all populations. It is a container of individuals.
+
+    Parameters:
+        * individual (BaseIndividual): Class of the individuals
+        * size_population (int): Size of the population
+            Min: 1
+        * keep_sorted (bool): Keep individuals sorted in the population
+        * ascending_order (bool): Whether the individuals fitness are ascending accordingly to their rank
+        * complete_population (bool): Whether the population is filled with random individuals to reach the maximum capacity after any generation
+        * strict_size (bool): Whether a population can admit more individuals than the initial population size
+        * immigration_rate (float): Ratio with the size of the number of new random individuals being immigrated to the population after any generation
+            Min: 0.
+
     """
 
     BaseComponent.set_component_name("Population")
@@ -21,13 +33,13 @@ class BasePopulation(BaseComponent):
         options.update(kwargs)
         BaseComponent.__init__(self, options)
 
-        self._individual_type: BaseIndividual = options.individual
-        self._init_size: int = options.size_population
-        self._keep_sorted: bool = options.keep_sorted
-        self.ascending_order: bool = options.ascending_order
-        self._complete_population: bool = options.complete_population
-        self._strict_size: bool = options.strict_size
-        self._immigration_rate: float = options.immigration_rate
+        self._individual_type: BaseIndividual = self._options.individual
+        self._init_size: int = self._options.size_population
+        self._keep_sorted: bool = self._options.keep_sorted
+        self.ascending_order: bool = self._options.ascending_order
+        self._complete_population: bool = self._options.complete_population
+        self._strict_size: bool = self._options.strict_size
+        self._immigration_rate: float = self._options.immigration_rate
 
         self._sorted: bool = False
         self._population: list[BaseIndividual]

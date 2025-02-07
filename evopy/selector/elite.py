@@ -11,6 +11,8 @@ class EliteSelector(BaseSelector):
     """
     This is the Elite selector.
     Selects the best individuals of the population.
+
+    Parameters:
     """
 
     BaseSelector.set_component_name("Elite")

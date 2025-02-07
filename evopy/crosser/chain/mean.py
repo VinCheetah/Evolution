@@ -15,6 +15,10 @@ class MeanChainCrosser(ChainCrosser):
     MeanChainCrosser class.
     This class is a subclass of the ChainCrosser class.
     The crossover operation is performed by taking the mean of the two chains.
+
+    Parameters:
+        * type_value (type): The type of the chain's elements.
+            Choices: int, float
     """
 
     ChainCrosser.set_component_type("MeanChain")
@@ -22,7 +26,7 @@ class MeanChainCrosser(ChainCrosser):
     def __init__(self, options, **kwargs):
         options.update(kwargs)
         ChainCrosser.__init__(self, options)
-        self._type_value = options.type_value
+        self._type_value = self._options.type_value
 
     def _cross(self, ind1: ChainIndividual, ind2: ChainIndividual) -> dict:
         match self._type_value:

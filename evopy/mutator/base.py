@@ -12,6 +12,16 @@ from evopy.individual import BaseIndividual
 class BaseMutator(BaseComponent):
     """
     Base class for mutators
+
+    Parameters:
+        * individual_size (int): The size of an individual
+            Min: 0
+        * mutation_prob (float): Probability of mutation
+            Min: 0
+            Max: 1
+        * multi_mutation (bool): Whether mutations can be performed multiple times on the same individual
+        * multi_mode (str): The mode of choosing probability to consider mutate the same individual another time. Used only when multi_mutation is True
+            Choices: times, squared, linear
     """
 
     BaseComponent.set_component_name("Mutator")
@@ -20,12 +30,12 @@ class BaseMutator(BaseComponent):
     def __init__(self, options, **kwargs):
         options.update(kwargs)
         BaseComponent.__init__(self, options)
-        self._size: int = options.individual_size
+        self._size: int = self._options.individual_size
         self._mutated_individuals: int = 0
         self._mutations: int = 0
-        self._mut_prob: float = options.mutation_prob
-        self._multi_mutation: bool = options.multi_mutation
-        self._multi_mode: str = options.multi_mutation_mode
+        self._mut_prob: float = self._options.mutation_prob
+        self._multi_mutation: bool = self._options.multi_mutation
+        self._multi_mode: str = self._options.multi_mutation_mode
 
     @BaseComponent.record_time
     def mutate(self, population: BasePopulation):

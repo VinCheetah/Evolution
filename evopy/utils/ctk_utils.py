@@ -2,6 +2,8 @@ import customtkinter as CTk
 from typing import Union, Callable
 from math import inf
 
+
+
 class Spinbox(CTk.CTkFrame):
     def __init__(self, *args,
                  width: int = 100,
@@ -26,6 +28,10 @@ class Spinbox(CTk.CTkFrame):
 
         self.entry = CTk.CTkEntry(self, width=width-(2*height), height=height-6, border_width=0)
         self.entry.grid(row=0, column=1, columnspan=1, padx=3, pady=3, sticky="ew")
+        self.entry.bind("<Enter>", lambda event: self.entry.focus_set())
+        self.entry.bind("<Escape>", lambda event: self.entry.focus_set())
+        self.entry.bind("<FocusOut>", self.command)
+        self.entry.bind("<ButtonRelease-1>", self.command)
 
         self.add_button = CTk.CTkButton(self, text="+", width=height-6, height=height-6,
                                                   command=self.add_button_callback)
@@ -61,20 +67,20 @@ class Spinbox(CTk.CTkFrame):
         return self.get() + self.step_size
 
     def add_button_callback(self):
-        if self.command is not None:
-            self.command()
         try:
             self.set_value(self.right_transform())
         except ValueError:
-            return
-
-    def subtract_button_callback(self):
+            pass
         if self.command is not None:
             self.command()
+
+    def subtract_button_callback(self):
         try:
             self.set_value(self.left_transform())
         except ValueError:
-            return
+            pass
+        if self.command is not None:
+            self.command()
 
     def set_value(self, value: Union[float, int]):
         self.entry.delete(0, "end")
@@ -88,9 +94,12 @@ class IntSpinbox(Spinbox):
         return int(super()._get())
     
 class FloatSpinbox(Spinbox):
+
+    def __init__(self, *args, step_size=0.1, **kwargs) -> None:
+        super().__init__(*args, step_size=step_size, **kwargs)
     
     def _get(self) -> float:
-        return float(super()._get())
+        return round(float(super()._get()), 8)
     
 class BoundedSpinbox(Spinbox):
     
@@ -111,7 +120,9 @@ class BoundedIntSpinbox(BoundedSpinbox, IntSpinbox):
         super().__init__(*args, width=width, height=height, step_size=step_size, default_value=default_value, command=command, min_value=min_value, max_value=max_value, **kwargs)
     
 class BoundedFloatSpinbox(BoundedSpinbox, FloatSpinbox):
-    pass
+
+    def __init__(self, *args, step_size=0.1, **kwargs):
+        super().__init__(*args, step_size=step_size, **kwargs)
         
     
 
@@ -183,157 +194,129 @@ class FolderSystem(CTk.CTkScrollableFrame):
                 item.pack(fill="x", padx=20, pady=2)  # Expand
                 
                 
-class ParameterWidget(CTk.CTkFrame):
-    
-    def __init__(self, master, parameter_name, current_value, default_value, param_type, choices=None, **kwargs):
-        """
-        Initialize a ParameterWidget for a specific parameter.
 
-        Args:
-            master (tk.Widget): The parent widget.
-            parameter_name (str): The name of the parameter.
-            current_value: The current value of the parameter.
-            default_value: The default value of the parameter.
-            param_type (type): The expected type of the parameter.
-            choices (list, optional): If the parameter has specific choices, provide them.
-        """
-        super().__init__(master, corner_radius=10, **kwargs)
+
+class ParameterWidget(CTk.CTkFrame):
+    def __init__(self, master, parameter_name, current_value, default_value, param_type, choices=None, **kwargs):
+        super().__init__(master, corner_radius=10, border_width=1, border_color="#444", **kwargs)
         self.parameter_name = parameter_name
         self.current_value = current_value
         self.default_value = default_value
         self.param_type = param_type
         self.choices = choices
 
-        # State
+        # Convert class values to their names for display
+        if isinstance(self.current_value, type):
+            self.current_value = self.current_value.__name__
+        if isinstance(self.default_value, type):
+            self.default_value = self.default_value.__name__
+
+        param_type_display = param_type.__name__ if isinstance(param_type, type) else str(param_type)
+
+        # State management
         self.is_modified = self.current_value != self.default_value
         self.is_valid = True
+        # Configure grid layout with tighter spacing
+        self.grid_columnconfigure(0, minsize=180)  # Parameter name
+        self.grid_columnconfigure(1, minsize=120)  # Type
+        self.grid_columnconfigure(2, weight=1, minsize=160)  # Input
+        self.grid_columnconfigure(3, minsize=80)  # Restore button
+        self.grid_columnconfigure(4, minsize=90)  # Status
+        self.grid_rowconfigure(0, weight=1)
 
-        # Layout Configuration
-        self.grid_columnconfigure(1, weight=1)
-        self.grid_columnconfigure(2, weight=1)
+        # Smaller fonts and tighter padding
+        self.name_label = CTk.CTkLabel( self, text=parameter_name, font=("Segoe UI", 15))
+        self.name_label.grid(row=0, column=0, padx=(10, 5), pady=5, sticky="w")
 
-        # Name Label
-        self.name_label = CTk.CTkLabel(self, text=parameter_name, font=("Arial", 14))
-        self.name_label.grid(row=0, column=0, sticky="w", padx=10)
+        self.type_label = CTk.CTkLabel( self, text=param_type_display, font=("Segoe UI", 13))
+        self.type_label.grid(row=0, column=1, padx=5, pady=5, sticky="w")
 
-        # Type Label
-        self.type_label = CTk.CTkLabel(self, text=f"Type: {param_type}", font=("Arial", 12), text_color="gray")
-        self.type_label.grid(row=0, column=1, sticky="w", padx=10)
+        # Input field with constrained width
+        self.value_input = self.create_input_field(self.current_value)
+        self.value_input.grid(row=0, column=2, padx=5, pady=5, sticky="ew")
 
-        # Value Input
-        self.value_input = self.create_input_field(current_value)
-        self.value_input.grid(row=0, column=2, padx=10)
+        # Compact restore button
+        self.restore_button = CTk.CTkButton( self, text="Reset", width=60, height=28, command=self.restore_to_default, fg_color="#444", hover_color="#333", state="disabled", font=("Segoe UI", 13))
+        self.restore_button.grid(row=0, column=3, padx=5, pady=5)
 
-        # Restore Button
-        self.restore_button = CTk.CTkButton(
-            self,
-            text="Restore",
-            width=80,
-            command=self.restore_to_default,
-            fg_color="gray",
-            hover_color="darkgray",
-        )
-        self.restore_button.grid(row=0, column=3, padx=10)
+        # Status label with fixed width
+        self.status_label = CTk.CTkLabel( self, text=self.get_status_text(), font=("Segoe UI", 13), text_color=self.get_status_color(), width=80, anchor="center")
+        self.status_label.grid(row=0, column=4, padx=(5, 10), pady=5)
 
-        # Status Label
-        self.status_label = CTk.CTkLabel(
-            self,
-            text=self.get_status_text(),
-            font=("Arial", 12),
-            text_color=self.get_status_color(),
-        )
-        self.status_label.grid(row=0, column=4, padx=10)
+        # Set fixed frame height
+        self.configure(height=36)  # Matches component heights
+        self.restore_to_default()
 
     def create_input_field(self, value):
-        """
-        Create an input field tailored to the parameter's type.
+        """Create input field with constrained dimensions"""
+        input_width = 250  # Reduced width
 
-        Args:
-            value: The current value of the parameter.
-
-        Returns:
-            CTk.Widget: A custom widget for the parameter's input.
-        """
         if self.param_type == bool:
-            # Boolean: Use a toggle switch
-            toggle = CTk.CTkSwitch(self, text="", variable=CTk.IntVar(value=int(value)))
-            toggle.bind("<ButtonRelease-1>", self.validate_input)
-            return toggle
-        elif self.param_type in [int, float, str]:
-            # Number or String: Use an entry field
-            entry = CTk.CTkEntry(self, placeholder_text=str(value))
-            entry.bind("<FocusOut>", self.validate_input)
-            return entry
+            switch = CTk.CTkSwitch(self, text="", command=self.validate_input, switch_width=60, switch_height=20)
+            return switch
+        elif self.param_type == int:
+            spinbox = IntSpinbox(self, default_value=int(value), command=self.validate_input)
+            return spinbox
+        elif self.param_type == float:
+            spinbox = FloatSpinbox(self, default_value=float(value), command=self.validate_input)
+            return spinbox
         elif self.choices:
-            # If choices are provided, use a dropdown
-            dropdown = CTk.CTkComboBox(self, values=self.choices, command=self.validate_input)
-            dropdown.set(str(value))
+            dropdown = CTk.CTkComboBox(self, values=[c.__name__ for c in self.choices], command=self.validate_input, width=input_width, dropdown_font=("Segoe UI", 11), button_color="#444")
             return dropdown
-        else:
-            # Fallback: Use an entry field
-            entry = CTk.CTkEntry(self, placeholder_text=str(value))
+        else:  # Entries for strings
+            entry = CTk.CTkEntry(
+                self,
+                width=input_width,
+                height=28,
+                placeholder_text=str(value),
+                font=("Segoe UI", 11)
+            )
+            entry.bind("<KeyRelease>", self.validate_input)
             entry.bind("<FocusOut>", self.validate_input)
             return entry
 
     def restore_to_default(self):
-        """Restore the parameter to its default value."""
-        self.current_value = self.default_value
+        """Reset parameter to default value."""
         if isinstance(self.value_input, CTk.CTkEntry):
             self.value_input.delete(0, "end")
             self.value_input.insert(0, str(self.default_value))
         elif isinstance(self.value_input, CTk.CTkSwitch):
-            self.value_input.set(int(self.default_value))
-        elif isinstance(self.value_input, CTk.CTkComboBox):
-            self.value_input.set(str(self.default_value))
+            if bool(self.value_input.get()) != self.default_value:
+                self.value_input.toggle()
+        elif isinstance(self.value_input, Spinbox):
+            self.value_input.set_value(self.default_value)
+        self.validate_input()
 
-        # Validate and update the UI
-        self.is_modified = False
-        self.is_valid = True
+    def validate_input(self, event=None):
+        """Validate and update parameter state."""
+        # Get raw input value
+        if isinstance(self.value_input, CTk.CTkComboBox):
+            raw_value = self.value_input.get()
+        elif isinstance(self.value_input, CTk.CTkSwitch):
+            raw_value = bool(self.value_input.get())
+        else:
+            raw_value = self.value_input.get()
+
+        if self.param_type is None or isinstance(raw_value, self.param_type):
+            self.is_valid = True
+            self.current_value = raw_value
+        else:
+            self.is_valid = False
+
+        self.is_modified = (self.is_valid and (self.current_value != self.default_value))
+
         self.update_status_label()
 
     def get_status_text(self):
-        """Get the status text for the parameter."""
-        if not self.is_valid:
-            return "Invalid Type"
-        return "Modified" if self.is_modified else "Default"
+        return "Invalid" if not self.is_valid else "Modified" if self.is_modified else "Default"
 
     def get_status_color(self):
-        """Get the status color based on the parameter's state."""
-        if not self.is_valid:
-            return "red"
-        return "green" if self.is_modified else "gray"
-
-    def validate_input(self, event=None):
-        """Validate the current value and update the UI."""
-        input_value = (
-            self.value_input.get()
-            if isinstance(self.value_input, (CTk.CTkEntry, CTk.CTkComboBox))
-            else self.value_input.get() == 1
-        )
-
-        # Type check
-        try:
-            if self.param_type in [int, float]:
-                converted_value = self.param_type(input_value)
-            elif self.param_type == bool:
-                converted_value = bool(input_value)
-            else:
-                converted_value = input_value  # Assume valid for strings or unsupported types
-
-            self.is_valid = True
-            self.current_value = converted_value
-        except (ValueError, TypeError):
-            self.is_valid = False
-
-        # Modification check
-        self.is_modified = self.is_valid and (self.current_value != self.default_value)
-
-        # Update UI
-        self.update_status_label()
+        return "#ff4444" if not self.is_valid else "#4CAF50" if self.is_modified else "#888"
 
     def update_status_label(self):
-        """Update the status label."""
-        self.status_label.configure(
-            text=self.get_status_text(),
-            text_color=self.get_status_color(),
-        )
+        self.status_label.configure(text=self.get_status_text(), text_color=self.get_status_color())
+        self.restore_button.configure(state="normal" if self.is_modified else "disabled")
+
+    def get_value(self):
+        """Return the current validated value or None if invalid."""
+        return self.current_value if self.is_valid else None

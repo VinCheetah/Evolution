@@ -11,6 +11,10 @@ class GraphicEnvironment(BaseEnvironment):
     """
     GraphicEnvironment class, subclass of BaseEnvironment.
     It is used to add graphic capabilities to the environment.
+
+    Parameters:
+        * graphic (BaseGraphic): the graphic to be added
+        * active_graphic (bool): whether the graphic is active or not
     """
 
     def __init__(self, options, **kwargs):
