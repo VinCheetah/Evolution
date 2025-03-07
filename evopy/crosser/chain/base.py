@@ -20,8 +20,8 @@ class ChainCrosser(MultiPointCrosser, BaseCrosser):
             Fixed: 2
     """
 
-    BaseCrosser.set_component_type("Chain")
-    BaseCrosser.add_requirement("individual", ChainIndividual)
+    component_type: str = "Chain"
+    requirements = [("individual", ChainIndividual)]
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)

@@ -23,10 +23,9 @@ class FunctionEvaluator(ChainEvaluator, GraphicReprEvaluator):
         * allow3D (bool): Whether the function is represented in 3D space
     """
 
-    ChainEvaluator.set_component_type("Function")
+    component_type: str = "Function"
 
     def __init__(self, options, **kwargs):
-        ind_size: int = options.individual_size
         if options.allow3D and options.individual_size == 2:
             options.repr3D = True
         options.update(kwargs)

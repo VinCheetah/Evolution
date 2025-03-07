@@ -22,7 +22,7 @@ class SingleEvaluator(BaseEvaluator):
         * evaluation_func (Optional[Callable]): The function to be called to evaluate an individual at a time. If not provided, the evaluation function is used.
     """
 
-    BaseEvaluator.set_component_type("Single")
+    component_type: str = "Single"
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)

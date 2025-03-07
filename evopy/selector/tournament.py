@@ -23,7 +23,7 @@ class TournamentSelector(BaseSelector):
             Min: 1
     """
 
-    BaseSelector.set_component_name("Tournament")
+    component_name: str = "Tournament"
     _single_select: bool = True
 
     def __init__(self, options):

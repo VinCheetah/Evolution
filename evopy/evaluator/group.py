@@ -20,7 +20,7 @@ class GroupEvaluator(BaseEvaluator):
     Parameters:
     """
 
-    BaseEvaluator.set_component_type("Group")
+    component_type: str = "Group"
 
     def _evaluate_pop(self, population: BasePopulation):
         self._evaluated = population.size

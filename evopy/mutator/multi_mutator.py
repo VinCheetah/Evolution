@@ -17,7 +17,7 @@ class MultiMutator(BaseMutator):
     Parameters:
     """
 
-    BaseMutator.set_component_type("Multi")
+    component_type: str = "Multi"
     _functions = []
 
     def _mutate(self, individual) -> bool:

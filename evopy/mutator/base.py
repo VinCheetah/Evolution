@@ -24,8 +24,8 @@ class BaseMutator(BaseComponent):
             Choices: times, squared, linear
     """
 
-    BaseComponent.set_component_name("Mutator")
-    BaseComponent.set_component_type("Base")
+    component_name: str = "Mutator"
+    component_type: str = "Base"
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)

@@ -16,8 +16,8 @@ class PermuMutator(MultiMutator):
     """
 
     mutation_modes = ["multi", "single", "swap", "reverse", "shuffle"]
-    MultiMutator.set_component_type("Permutation")
-    MultiMutator.add_requirement("individual", PermuIndividual)
+    component_type: str = "Permutation"
+    requirements = [("individual", PermuIndividual)]
 
     def __init__(self, options, **kwargs):
         self._mutate_mode = (self.mutation_modes + ["random"])[-1]

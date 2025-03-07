@@ -24,7 +24,7 @@ class ChainIndividual(BaseIndividual):
         * max_value (float): The maximum value of the chain's elements
     """
 
-    BaseIndividual.set_component_type("Chain")
+    component_type: str = "Chain"
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)

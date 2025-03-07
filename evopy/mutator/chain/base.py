@@ -17,8 +17,8 @@ class ChainMutator(BaseMutator):
     Parameters:
     """
 
-    BaseMutator.set_component_type("Chain")
-    BaseMutator.add_requirement("individual", ChainIndividual)
+    component_type: str = "Chain"
+    requirements = [("individual", ChainIndividual)]
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)

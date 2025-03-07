@@ -18,8 +18,8 @@ class BaseElite(BaseComponent):
             Min: 0
     """
 
-    BaseComponent.set_component_name("Elite")
-    BaseComponent.set_component_type("Base")
+    component_name: str = "Elite"
+    component_type: str = "Base"
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)

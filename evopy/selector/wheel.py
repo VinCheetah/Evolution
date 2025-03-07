@@ -21,7 +21,7 @@ class WheelSelector(BaseSelector):
             Min: 1
     """
 
-    BaseSelector.set_component_type("Wheel")
+    component_type: str = "Wheel"
     _single_select: bool = True
 
     def __init__(self, options, **kwargs):

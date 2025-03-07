@@ -17,6 +17,8 @@ class GraphicEnvironment(BaseEnvironment):
         * active_graphic (bool): whether the graphic is active or not
     """
 
+    component_type: str = "Graphic"
+
     def __init__(self, options, **kwargs):
         self._components.append("graphic")
         self._activations["graphic"] = True and options.active_graphic

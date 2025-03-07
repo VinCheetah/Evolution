@@ -17,8 +17,8 @@ class BaseIndividual(BaseComponent):
         * unevaluated_time (float) : Time for an individual that could not be evaluated
     """
 
-    BaseComponent.set_component_name("Individual")
-    BaseComponent.set_component_type("Base")
+    component_name: str = "Individual"
+    component_type: str = "Base"
     _id_counter: int = 0
 
     def __init__(self, options, **kwargs):

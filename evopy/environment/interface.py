@@ -17,7 +17,7 @@ class InterfaceEnvironment(BaseEnvironment):
         * active_interface (bool): whether this interface is active or not
     """
 
-    _active_interface: bool = True
+    component_type: str = "Interface"
 
     def __init__(self, options, **kwargs):
         self._components.append("interface")

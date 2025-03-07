@@ -15,7 +15,7 @@ class EliteSelector(BaseSelector):
     Parameters:
     """
 
-    BaseSelector.set_component_name("Elite")
+    component_name: str = "Elite"
     _group_select: bool = True
 
     def group_select(self, population: BasePopulation, n_selected: int):

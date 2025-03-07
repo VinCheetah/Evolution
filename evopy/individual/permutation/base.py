@@ -15,7 +15,7 @@ class PermuIndividual(BaseIndividual):
         * individual_size (int): The size of the permutation of an individual
     """
 
-    BaseIndividual.set_component_type("Permutation")
+    component_type = "Permutation"
 
     def __init__(self, options):
         super().__init__(options)

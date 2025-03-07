@@ -22,7 +22,7 @@ class PermuCrosserPMX(MultiPointCrosser, PermuCrosser):
             Fixed: 2
     """
 
-    PermuCrosser.set_component_type("PMX")
+    component_type: str = "PMX"
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)

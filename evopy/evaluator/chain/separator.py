@@ -21,8 +21,8 @@ class SeparatorEvaluator(ChainEvaluator, GraphicReprEvaluator):
         * separator_weights (random | list[float]): Weights used to separate the chain into two subsets.
     """
 
-    ChainEvaluator.set_component_type("Separator")
-    ChainEvaluator.add_requirement("individual", BinaryChainIndividual)
+    component_type: str = "Separator"
+    requirements = [("individual", BinaryChainIndividual)]
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)

@@ -30,8 +30,8 @@ class BaseSelector(BaseComponent):
             Min: 1
     """
 
-    BaseComponent.set_component_name("Selector")
-    BaseComponent.set_component_type("Base")
+    component_name: str = "Selector"
+    component_type: str = "Base"
 
     _single_select: bool = False
     _group_select: bool = False

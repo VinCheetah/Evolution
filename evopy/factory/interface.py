@@ -94,7 +94,6 @@ class InterfaceFactory(BaseFactory, ctk.CTk):
         for widget in self.params_container.winfo_children():
             widget.destroy()
 
-
         grouped_params = self.get_all_parameters(component_name)
         if not grouped_params:
             self.params_label.configure(text=f"No parameters found for {component_name}")
@@ -116,16 +115,14 @@ class InterfaceFactory(BaseFactory, ctk.CTk):
                 else:
                     choices = None
 
-
-                widget = ParameterWidget(
+                ParameterWidget(
                     master=self.params_container,
                     parameter_name=param,
                     current_value=current_value,
                     default_value=default_value,
                     param_type=param_type,
                     choices=choices,
-                )
-                widget.pack(pady=5, padx=10, fill="x")
+                ).pack(pady=5, padx=10, fill="x")
             self.root.update()
 
     def init_type_frame(self):

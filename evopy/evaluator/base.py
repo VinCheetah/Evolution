@@ -21,9 +21,9 @@ class BaseEvaluator(BaseComponent):
 
     """
 
-    BaseComponent.set_component_name("Evaluator")
-    BaseComponent.set_component_type("Base")
-    BaseComponent.add_requirement("population", BasePopulation)
+    component_name: str = "Evaluator"
+    component_type: str = "Base"
+    requirements = [("population", BasePopulation)]
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)

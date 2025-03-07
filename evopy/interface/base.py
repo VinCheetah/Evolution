@@ -7,8 +7,8 @@ from matplotlib.figure import Figure
 
 class BaseInterface(BaseComponent):
 
-    _component_name: str = "Interface"
-    _component_type: str = "Base"
+    component_name: str = "Interface"
+    component_type: str = "Base"
 
     def __init__(self, env, options, **kwargs):
         options.update(kwargs)

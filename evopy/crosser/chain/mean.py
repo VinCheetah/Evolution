@@ -21,7 +21,7 @@ class MeanChainCrosser(ChainCrosser):
             Choices: int, float
     """
 
-    ChainCrosser.set_component_type("MeanChain")
+    component_type: str = "MeanChain"
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)

@@ -21,7 +21,7 @@ class BinaryChainIndividual(ChainIndividual):
             Fixed: 1
     """
 
-    ChainIndividual.set_component_type("BinaryChain")
+    component_type: str = "BinaryChain"
 
     def __init__(self, options, **kwargs):
 

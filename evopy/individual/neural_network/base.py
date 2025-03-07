@@ -13,7 +13,7 @@ class NNIndividual(BaseIndividual):
     Base class for individuals based on neural networks.
     """
 
-    BaseIndividual.set_component_type("NeuralNetwork")
+    component_type: str = "NeuralNetwork"
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)

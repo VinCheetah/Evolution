@@ -22,9 +22,9 @@ class BaseCrosser(BaseComponent):
             Max: 1.
     """
 
-    BaseComponent.set_component_name("Crosser")
-    BaseComponent.set_component_type("Base")
-    BaseComponent.add_requirement("individual", BaseIndividual)
+    component_name: str = "Crosser"
+    component_type: str = "Base"
+    requirements = [("individual", BaseIndividual)]
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)

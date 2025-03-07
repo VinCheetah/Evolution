@@ -26,8 +26,8 @@ class BasePopulation(BaseComponent):
 
     """
 
-    BaseComponent.set_component_name("Population")
-    BaseComponent.set_component_type("Base")
+    component_name: str = "Population"
+    component_type: str = "Base"
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)

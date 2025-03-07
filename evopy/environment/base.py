@@ -42,7 +42,7 @@ class BaseEnvironment(BaseComponent):
         * create_report (bool): Whether to create report for each generation
         * reproducing (bool): Reproduce an evolution using a previous record
         * from_beginning (bool): Whether to start from beginning if there is a reproducing record
-        * evolution_record (dict): Evolution record of an evolution. Should be given at the end of a tracking evolution
+        * evolution_record (Optional[dict]): Evolution record of an evolution. Should be given at the end of a tracking evolution
         * tracking (bool): Record the evolution
 
         * record_folder (str): Folder where to save the records
@@ -50,14 +50,10 @@ class BaseEnvironment(BaseComponent):
         * record_file (str): File where to save the records
         * record_file_spec (str): Spec of the file where to save the records
 
-    Attributes
-    ----------
-        * God damnnnnn(bool): Woaw
-            Dman
     """
 
-    BaseComponent.set_component_name("Environment")
-    BaseComponent.set_component_type("Base")
+    component_name: str = "Environment"
+    component_type: str = "Base"
 
     _components: list[str] = ["crosser", "mutator", "evaluator", "selector", "population", "elite"]
     _activations: dict[str, bool] = {
@@ -74,9 +70,8 @@ class BaseEnvironment(BaseComponent):
     def __init__(self, options, **kwargs):
         if isinstance(self, Mixin):
             self._init_mixin()
-
-        self._options.update(kwargs)
-        super().__init__(self._options)
+        options.update(kwargs)
+        super().__init__(options)
 
         self.random_seed: int = self._options.random_seed
         random.seed(self.random_seed)

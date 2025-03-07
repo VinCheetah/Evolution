@@ -16,8 +16,8 @@ class BinaryChainMutator(ChainMutator):
     Parameters:
     """
 
-    ChainMutator.set_component_type("BinaryChain")
-    ChainMutator.add_requirement("individual", BinaryChainIndividual)
+    component_type: str = "BinaryChain"
+    requirements = [("individual", BinaryChainIndividual)]
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)

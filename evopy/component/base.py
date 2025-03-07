@@ -18,8 +18,11 @@ class BaseComponent:
 
     _logger = create_logger()
     _requirements: dict[str, list] = {}
+    component_type: str = "Base"
+    component_name: str = "Component"
+    init_requires_environment: bool = False
 
-    def __init__(self, options: Options, component_name: Optional[str]=None, component_type: Optional[str]=None):
+    def __init__(self, options: Options=None):
         """
         Initialize the component with options.
 
@@ -27,10 +30,15 @@ class BaseComponent:
             options (Options): Configuration options for the component.
         """
         self._options: Options = options
-        self._component_name: str = "Component" if component_name is None else component_name
-        self._component_type: str = "Base" if component_type is None else component_type
-        init_requires_environment: bool = False
+        self.component_name: str = self.get_latest("component_name")
+        self.component_type: str = self.get_latest("component_type")
+        self.init_requires_environment: bool = self.get_latest("init_requires_environment")
         self._duration: float = 0
+
+    def get_latest(self, key: str):
+        for subclass in self.__class__.__mro__:
+            if hasattr(subclass, key):
+                return getattr(subclass, key)
 
     @staticmethod
     def record_time(function):

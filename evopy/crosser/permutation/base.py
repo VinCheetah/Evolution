@@ -16,8 +16,8 @@ class PermuCrosser(BaseCrosser):
     Parameters:
     """
 
-    BaseCrosser.set_component_type("Permutation")
-    BaseCrosser.add_requirement("individual", PermuIndividual)
+    component_type: str = "Permutation"
+    requirements = [("individual", PermuIndividual)]
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)
