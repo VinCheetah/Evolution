@@ -82,7 +82,7 @@ default_opts = Options({
 
     # Evaluator
     "evaluation_func": None,
-    "unvalid_fit_value": 0,
+    "invalid_fit_value": 0,
     "unevaluated_time": 0,
     # # PermuEval
     "weights": Randomized,
