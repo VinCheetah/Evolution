@@ -18,7 +18,7 @@ class SeparatorEvaluator(ChainEvaluator, GraphicReprEvaluator):
     This evaluator is used to evaluate a chain by separating it into two subsets.
 
     Parameters:
-        * separator_weights (random | list[float]): Weights used to separate the chain into two subsets.
+        * separator_weights (Random | list[float]): Weights used to separate the chain into two subsets.
     """
 
     component_type: str = "Separator"

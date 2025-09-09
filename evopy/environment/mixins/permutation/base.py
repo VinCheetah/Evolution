@@ -16,8 +16,10 @@ class PermuMixin(Mixin):
     It is used to add permutation capabilities to the environment.
     """
 
-    Mixin.set_component_type("Permutation")
-    Mixin.add_requirement("individual", PermuIndividual)
-    Mixin.add_requirement("mutator", PermuMutator)
-    Mixin.add_requirement("crosser", PermuCrosser)
-    Mixin.add_requirement("evaluator", PermuEvaluator)
+    component_type = "Permutation"
+    requirements = [
+        ("individual", PermuIndividual),
+        ("mutator", PermuMutator),
+        ("crosser", PermuCrosser),
+        ("evaluator", PermuEvaluator),
+    ]

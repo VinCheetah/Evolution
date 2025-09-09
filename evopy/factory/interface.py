@@ -19,13 +19,13 @@ class InterfaceFactory(BaseFactory, ctk.CTk):
         self.params_container: ctk.CTkScrollableFrame = ...
         self.component_var: tk.StringVar = ...
         self.types_container: ctk.CTkComboBox = ...
-        self.params_container: ctk.CTkScrollableFrame = ...
         self.params_label: ctk.CTkLabel = ...
         self.selected_comp_type: str = ...
         self.comps_widgets: set = set()
         self.type_widgets: set = set()
         self.params_widgets: set = set()
         self.control_widgets: set = set()
+        self.comp_type_labels: dict = {}
         self.types_initialized: bool = False
         self.params_initialized: bool = False
 
@@ -43,14 +43,17 @@ class InterfaceFactory(BaseFactory, ctk.CTk):
         self.root.protocol("WM_DELETE_WINDOW", lambda: self.root.destroy())
         self.root.geometry("1400x900")
 
-        self.root.grid_columnconfigure(0, weight=3)
+        #self.root.grid_columnconfigure(0, weight=3)
         self.root.grid_columnconfigure(1, weight=7)
         self.root.grid_rowconfigure(0, weight=3)
         self.root.grid_rowconfigure(1, weight=6)
         self.root.grid_rowconfigure(2, weight=1)
 
         self.comps_frame = ctk.CTkFrame(self.root, corner_radius=15)
-        self.comps_frame.grid(row=0, column=0, rowspan=2, sticky="nsew", padx=10, pady=10)
+        self.comps_frame.grid(row=0, column=0, rowspan=2, sticky="nsw", padx=10, pady=10)
+        self.comps_frame.rowconfigure(0, weight=3)
+        self.comps_frame.columnconfigure(0, weight=1)
+        self.comps_frame.columnconfigure(1, weight=1)
 
         self.type_frame = ctk.CTkFrame(self.root, corner_radius=15)
         self.type_frame.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
@@ -61,10 +64,11 @@ class InterfaceFactory(BaseFactory, ctk.CTk):
         self.control_frame = ctk.CTkFrame(self.root, corner_radius=15)
         self.control_frame.grid(row=3, column=0, columnspan=2, sticky="nsew", padx=10, pady=10)
 
-        ctk.CTkLabel(self.comps_frame, text="Components", font=("Arial", 28, "bold")).pack(pady=20)
+        ctk.CTkLabel(self.comps_frame, text="Components", font=("Arial", 28, "bold")).grid(row=0, column=0, columnspan=2, sticky="nsew", pady=20)
 
         self.component_var = tk.StringVar()
-        for component_name in self.get_evopy_components():
+        for i, component_name in enumerate(self.get_evopy_components()):
+            self.comps_frame.rowconfigure(i+1, weight=1)
             ctk.CTkRadioButton(
                 self.comps_frame,
                 text=f"  {component_name.capitalize()}",
@@ -72,7 +76,10 @@ class InterfaceFactory(BaseFactory, ctk.CTk):
                 value=component_name,
                 command=self.comp_type_selected,
                 font=("Lato", 20, "bold"),
-            ).pack(anchor="w", pady=10, padx=40)
+            ).grid(row=i+1, column=0, sticky="nsew", padx=20)
+            comp_type = ctk.CTkLabel(self.comps_frame, text=self.get_value(component_name).component_type if self.get_value(component_name) is not None else "None", font=("Lato", 16, "italic"))
+            comp_type.grid(row=i+1, column=1, sticky="nsew", padx=40)
+            self.comp_type_labels[component_name] = comp_type
 
         ctk.CTkButton(self.control_frame, text="Save Options", command=self.save_options_dialog).pack(padx=10, pady=20)
         ctk.CTkButton(self.control_frame, text="Load Options", command=self.load_options_dialog).pack(padx=10, pady=20)
@@ -83,7 +90,14 @@ class InterfaceFactory(BaseFactory, ctk.CTk):
         if not self.types_initialized:
             self.init_type_frame()
         self.types_container.configure(require_redraw=True, values=list(map(lambda x: x.__name__, self.components_classes[component_name])))
-        self.types_container.set(self.components_classes[component_name][0].__name__)
+        comp_value = self.get_value(component_name)
+        if comp_value is not None:
+            comp_name = comp_value.__name__
+            self.types_container.set(comp_name)
+            self.update_parameters(comp_name)
+        else:
+            self.types_container.set("None")
+
 
     def update_parameters(self, component_name):
         """Display detailed view for a selected component."""
@@ -105,7 +119,7 @@ class InterfaceFactory(BaseFactory, ctk.CTk):
 
             for param, info in params.items():
                 param_type = self.str_to_type(info["type"])
-                current_value = self.get_option(param)
+                current_value = self.get_value(param)
                 if isinstance(current_value, type):
                     current_value = current_value.__name__
                 default_value = self.get_default_value(param)
@@ -149,6 +163,35 @@ class InterfaceFactory(BaseFactory, ctk.CTk):
 
         self.params_container = ctk.CTkScrollableFrame(self.params_frame)
         self.params_container.pack(fill="both", expand=True, padx=10, pady=10)
+        canvas = self.params_container._parent_canvas  # internal canvas that actually scrolls
+
+        # Bind keyboard scrolling (only works when canvas has focus)
+        canvas.bind("<Up>", lambda e: canvas.yview_scroll(-1, "units"))
+        canvas.bind("<Down>", lambda e: canvas.yview_scroll(1, "units"))
+        canvas.bind("<Prior>", lambda e: canvas.yview_scroll(-1, "pages"))  # PageUp
+        canvas.bind("<Next>", lambda e: canvas.yview_scroll(1, "pages"))  # PageDown
+
+        # Make canvas focusable when hovered/clicked
+        canvas.bind("<Enter>", lambda e: canvas.focus_set())
+        canvas.bind("<Button-1>", lambda e: canvas.focus_set())
+
+        # --- Mouse / trackpad scrolling ---
+        def _on_mousewheel(event):
+            if event.num == 4:  # Linux scroll up
+                canvas.yview_scroll(-1, "units")
+            elif event.num == 5:  # Linux scroll down
+                canvas.yview_scroll(1, "units")
+            elif event.delta:  # Windows / macOS
+                direction = -1 if event.delta > 0 else 1
+                canvas.yview_scroll(direction, "units")
+
+        canvas.bind_all("<MouseWheel>", _on_mousewheel)  # Windows / macOS
+        canvas.bind_all("<Button-4>", _on_mousewheel)  # Linux scroll up
+        canvas.bind_all("<Button-5>", _on_mousewheel)  # Linux scroll down
+
+        # --- Focus on hover or click so keys/wheel work ---
+        canvas.bind("<Enter>", lambda e: canvas.focus_set())
+        canvas.bind("<Button-1>", lambda e: canvas.focus_set())
 
     def customize_new(self):
         """Handle customization of a new component."""
@@ -160,7 +203,11 @@ class InterfaceFactory(BaseFactory, ctk.CTk):
     def select_existing(self):
         """Handle the selection of an existing component."""
         component = self.types_container.get()
+        if component == "None":
+            return 0
+        self.set_option(self.component_var.get(), self.string_comp[component])
         print(f"Selected existing component: {component}")
+        self.comp_type_labels[self.component_var.get()].configure(require_redraw=True, text=self.string_comp[component].component_type)
         self.update_parameters(component)
 
     def save_options_dialog(self):

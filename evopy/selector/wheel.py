@@ -28,7 +28,8 @@ class WheelSelector(BaseSelector):
         options.update(kwargs)
         super().__init__(options)
         self._mode: str = self._options.wheel_selection_mode
-        self._power: int = self._options.wheel_power
+        if self._mode == "power":
+            self._power: int = self._options.wheel_power
         self._min_fit: float
         self._max_fit: float
         self.wheel_values: np.ndarray = ...

@@ -19,14 +19,13 @@ class GraphicEnvironment(BaseEnvironment):
 
     component_type: str = "Graphic"
 
-    def __init__(self, options, **kwargs):
-        self._components.append("graphic")
-        self._activations["graphic"] = True and options.active_graphic
+    _components = BaseEnvironment._components + ["graphic"]
+    _activations = BaseEnvironment._activations | {"graphic": True}
 
+    def __init__(self, options):
         if self.is_active("graphic"):
             self.graphic: BaseGraphic = options.graphic
-
-        BaseEnvironment.__init__(self, options, **kwargs)
+        super().__init__(options)
 
     def init_evolution(self):
         super().init_evolution()

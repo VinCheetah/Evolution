@@ -16,14 +16,14 @@ class TournamentSelector(BaseSelector):
         * tournament_mode_ratio (bool): Whether the number of individuals in the tournament in selected by the size parameter, or the size_ratio parameter
         * tournament_size (int): The number of individuals to participate in a tournament
             Min: 1
-        * tournament_size_ratio (bool): The ratio of the number of participants in each tournament, with the number of individuals
+        * tournament_size_ratio (float): The ratio of the number of participants in each tournament, with the number of individuals
             Min: 0
             Max: 1
         * size_population (int): The number of individuals in the population. Is important only if the mode is 'ratio'
             Min: 1
     """
 
-    component_name: str = "Tournament"
+    component_type: str = "Tournament"
     _single_select: bool = True
 
     def __init__(self, options):

@@ -55,8 +55,9 @@ class BaseEnvironment(BaseComponent):
     component_name: str = "Environment"
     component_type: str = "Base"
 
-    _components: list[str] = ["crosser", "mutator", "evaluator", "selector", "population", "elite"]
+    _components: list[str] = ["individual", "evaluator", "selector", "population", "crosser", "mutator", "elite"]
     _activations: dict[str, bool] = {
+        "individual": True,
         "crosser": True,
         "mutator": True,
         "evaluator": True,
@@ -67,17 +68,30 @@ class BaseEnvironment(BaseComponent):
         "tracking": True,
     }
 
-    def __init__(self, options, **kwargs):
-        if isinstance(self, Mixin):
-            self._init_mixin()
-        options.update(kwargs)
-        super().__init__(options)
+    @classmethod
+    def make(cls, options):
+        requirements = []
+        while True:
+            for comp in cls._components:
+                comp: BaseComponent = options[comp]
+                requirements.extend(comp.requirements)
 
+    @classmethod
+    def init_mixin(cls, options):
+        pass
+
+    @classmethod
+    def get_components(cls) -> list:
+        return cls._components
+
+    def __init__(self, options):
+        super().__init__(options)
+        self._options.env = self
         self.random_seed: int = self._options.random_seed
         random.seed(self.random_seed)
         np.random.seed(self.random_seed)
 
-        self._reproducing: bool = self._options.evolution_record is not None
+        self._reproducing: bool = self._options.evolution_record is not None and self._options.reproducing
         if self._reproducing:
             self._evolution_record: dict = self._options.evolution_record
             self._evolution_process: list[tuple[int, str, Any]] = self._evolution_record["evolution_process"]
@@ -135,13 +149,12 @@ class BaseEnvironment(BaseComponent):
                 self.add_requirement(comp_name, comp)
 
     def check_requirements(self):
-        for component_name, requirements_list in self._requirements.items():
+        for component_name, requirement_class in self.requirements:
             component_class = getattr(self, component_name)
-            for requirement_class in requirements_list:
-                assert issubclass(component_class, requirement_class), (
-                    f"{component_name} requires {requirement_class.__name__}, but {component_class.__name__}"
-                    f"is not a subclass. Try to create an environment using the factory"
-                )
+            assert issubclass(component_class, requirement_class), (
+                f"{component_name} requires {requirement_class.__name__}, but {component_class.__name__}"
+                f"is not a subclass. Try to create an environment using the factory"
+            )
 
     @classmethod
     def add_component(cls, component_name: str):
@@ -155,13 +168,16 @@ class BaseEnvironment(BaseComponent):
 
     def _init_component(self, component_name: str):
         """Initialize a component"""
+        comp = getattr(self, component_name)
         if self._verif_init_comp(component_name):
-            comp = getattr(self, component_name)
-            if comp.init_requires_environment:
+            if False and comp.init_requires_environment:
                 init_comp = comp(self, self._options)
             else:
                 init_comp = comp(self._options)
             setattr(self, component_name, init_comp)
+        else:
+            comp.initialize(self._options)
+
 
     def _verif_init_comp(self, component_name) -> bool:
         """Verify if a component needs to be initialized"""
@@ -223,16 +239,16 @@ class BaseEnvironment(BaseComponent):
         """Record the evolution"""
         rec_folder = Path(self._record_folder)
         rec_folder.mkdir(parents=True, exist_ok=True)
-        rec_subfoler = Path(rec_folder / self._record_subfolder)
-        rec_subfoler.mkdir(parents=True, exist_ok=True)
+        rec_subfolder = Path(rec_folder / self._record_subfolder)
+        rec_subfolder.mkdir(parents=True, exist_ok=True)
         record_file_name = self._record_file + "_" + self._record_file_spec + ".pkl"
 
         idx = 2
-        while Path(rec_subfoler / self._record_file).exists():
+        while Path(rec_subfolder / self._record_file).exists():
             record_file_name = self._record_file + "_" + self._record_file_spec + f"_{idx}.pkl"
             idx += 1
 
-        record_path = Path(rec_subfoler / record_file_name)
+        record_path = Path(rec_subfolder / record_file_name)
         with open(record_path, "wb") as f:
             pickle.dump(self._make_evolution_record(), f)
 
@@ -291,8 +307,8 @@ class BaseEnvironment(BaseComponent):
         """
         self.select()
         self.migrate()
-        self.mutate()
         self.cross()
+        self.mutate()
         self.evaluate()
         self.update_elite()
 
@@ -423,7 +439,7 @@ class BaseEnvironment(BaseComponent):
     def components_duration(self):
         """Get the components duration"""
         durations = {
-            comp_name: getattr(self, comp_name).get_duration() for comp_name in self._components
+            comp_name: getattr(self, comp_name).get_duration() for comp_name in self._components if comp_name != "individual"
         }
         durations["extra_time"] = self._extra_time
         durations["generation"] = self.get_duration()

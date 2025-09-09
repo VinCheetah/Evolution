@@ -4,6 +4,8 @@ import ast
 import re
 from importlib import import_module
 from typing import Dict, Any
+
+from evopy.component import BaseComponent
 from evopy.utils.evo_types import Unknown
 from pathlib import Path
 
@@ -51,7 +53,7 @@ def parse_parameters(docstring: str) -> Dict[str, Dict[str, Any]]:
 
 
 def process_param(name: str, lines: list, parameters: dict):
-    param_info = {'type': Unknown, 'description': '', 'extras': {}}
+    param_info = {'parameter': True, 'type': Unknown, 'description': '', 'extras': {}}
     description_parts = []
 
     for line in lines:
@@ -72,8 +74,6 @@ def process_param(name: str, lines: list, parameters: dict):
     param_info['description'] = ' '.join(description_parts).strip()
     parameters[name] = {k: v for k, v in param_info.items() if v or k == 'type'}
 
-
-# Rest of the script remains the same (analyze_component() and build_project_structure())
 
 def analyze_component(path: str, module, root_path) -> Dict[str, Any]:
     component_dict = {}
@@ -96,14 +96,16 @@ def analyze_component(path: str, module, root_path) -> Dict[str, Any]:
                                 comp_class = getattr(comp_module, node.name)
                             except AttributeError:
                                 try:
-                                    print(f"Warning: could not import {node.name} from {module}")
                                     rel_folder = os.path.relpath(file_path, root_path).split(os.sep)
                                     rel_folder[-1] = rel_folder[-1][:-3]
                                     comp_module = import_module(f"{module}.{'.'.join(rel_folder[1:])}")
                                     comp_class = getattr(comp_module, node.name)
+                                    print(f"Warning: could not import {node.name} directly from {module}")
                                 except ModuleNotFoundError:
+                                    print(f"Error: could not import {node.name} from {module}")
                                     continue
-                            component_dict[comp_class] = params
+                            if issubclass(comp_class, BaseComponent):
+                                component_dict[comp_class] = params
     return component_dict
 
 

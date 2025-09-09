@@ -17,23 +17,24 @@ class BaseComponent:
     """
 
     _logger = create_logger()
-    _requirements: dict[str, list] = {}
+    requirements: dict[str, list] = {}
     component_type: str = "Base"
     component_name: str = "Component"
-    init_requires_environment: bool = False
 
-    def __init__(self, options: Options=None):
+    def __init__(self, options: Options, **kwargs):
         """
         Initialize the component with options.
 
         Args:
             options (Options): Configuration options for the component.
         """
+        options.update(kwargs)
         self._options: Options = options
-        self.component_name: str = self.get_latest("component_name")
-        self.component_type: str = self.get_latest("component_type")
-        self.init_requires_environment: bool = self.get_latest("init_requires_environment")
         self._duration: float = 0
+
+    @classmethod
+    def get_components(cls) -> list:
+        return list()
 
     def get_latest(self, key: str):
         for subclass in self.__class__.__mro__:
@@ -97,11 +98,11 @@ class BaseComponent:
             name (str): Name of the requirement.
             component_class (type): Required component.
         """
-        if name not in cls._requirements:
-            cls._requirements[name] = []
-        if component_class not in cls._requirements[name]:
-            cls._requirements[name] = []
-        cls._requirements[name].append(component_class)
+        if name not in cls.requirements:
+            cls.requirements[name] = []
+        if component_class not in cls.requirements[name]:
+            cls.requirements[name] = []
+        cls.requirements[name].append(component_class)
 
     @classmethod
     def get_requirements(cls) -> dict:
@@ -111,7 +112,7 @@ class BaseComponent:
         Returns:
             dict: Requirements of the component.
         """
-        return cls._requirements
+        return cls.requirements
 
     @classmethod
     def del_requirements(cls, component_name: str):
@@ -121,7 +122,7 @@ class BaseComponent:
         Args:
             component_name (str): Name of the requirement.
         """
-        del cls._requirements[component_name]
+        del cls.requirements[component_name]
 
     @classmethod
     def set_component_type(cls, component_type: str):
@@ -131,7 +132,7 @@ class BaseComponent:
         Args:
             component_type (str): Type of the component.
         """
-        cls._component_type = component_type
+        cls.component_type = component_type
 
     @classmethod
     def set_component_name(cls, component_name: str):
@@ -152,12 +153,12 @@ class BaseComponent:
 
     def __repr__(self):
         """Representation of the component."""
-        return f"{self._component_name}({self._component_type})"
+        return f"{self.component_name}({self.component_type})"
 
     @classmethod
     def __str__(cls) -> str:
         """String representation of the component."""
-        return f"{cls._component_name}({cls._component_type})"
+        return f"{cls.component_name}({cls.component_type})"
 
     @staticmethod
     def _get_level_from_str(level):
@@ -188,7 +189,7 @@ class BaseComponent:
             msg (str): Message to log.
         """
         log_level = self._get_level_from_str(level)
-        msg = f"{self._component_name}({self._component_type}) -- {msg}"
+        msg = f"{self.component_name}({self.component_type}) -- {msg}"
         self._logger.log(log_level, msg)
 
     @staticmethod
@@ -198,3 +199,13 @@ class BaseComponent:
     @staticmethod
     def is_unknown(value):
         return isinstance(value, Unknown)
+
+    @classmethod
+    def initialize(cls, options):
+        """Initialize the component class."""
+        pass
+
+    @classmethod
+    def fixed_options(cls, options):
+        """Returns the modification of the options that the component is requiring."""
+        return {}

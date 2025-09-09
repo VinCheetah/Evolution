@@ -25,7 +25,7 @@ class MultiPointCrosser(BaseCrosser):
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)
-        BaseCrosser.__init__(self, options)
+        super().__init__(options)
 
         self._num_points: int = self._options.num_points
         self._num_cross: int = self._options.num_cross

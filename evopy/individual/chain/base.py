@@ -25,16 +25,15 @@ class ChainIndividual(BaseIndividual):
     """
 
     component_type: str = "Chain"
+    _type_value: type
+    _min_val: float
+    _max_val: float
+    _size: int
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)
         super().__init__(options)
 
-        self._type_value: type = self._options.type_value
-        self._min_value: int = self._options.min_value
-        self._max_value: int = self._options.max_value
-
-        self._size: int = self._options.individual_size
         match self._type_value:
             case builtins.int:
                 self._chain = np.random.randint(self._min_value, self._max_value + 1, self._size)
@@ -42,6 +41,14 @@ class ChainIndividual(BaseIndividual):
                 self._chain = np.random.uniform(self._min_value, self._max_value, self._size)
             case _:
                 raise NotImplementedError
+
+    @classmethod
+    def initialize(cls, options):
+        super().initialize(options)
+        cls._type_value = options.type_value
+        cls._min_value = options.min_value
+        cls._max_value = options.max_value
+        cls._size = options.individual_size
 
     @classmethod
     def _create(cls, options, **kwargs) -> "ChainIndividual":
@@ -76,7 +83,7 @@ class ChainIndividual(BaseIndividual):
         """
         Get the bounds of the individual.
         """
-        return (self._min_value, self._max_value)
+        return self._min_value, self._max_value
     
     def get_type(self) -> type:
         """
@@ -104,7 +111,7 @@ class ChainIndividual(BaseIndividual):
     def __setitem__(self, index, value) -> None:
         self._chain[index] = value
 
-    def __getitem__(self, index: int) -> int:
+    def __getitem__(self, index: int):
         return self._chain[index]
 
     def __eq__(self, other):

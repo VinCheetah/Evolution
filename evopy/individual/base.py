@@ -33,7 +33,6 @@ class BaseIndividual(BaseComponent):
         self._survived_gen: int = 0
         self._evaluation: tuple[float, float, str] = (0., 0., "")
 
-
     @classmethod
     def from_data(
         cls, options, data: dict, origin: list[str], set_id: int = -1
@@ -87,6 +86,7 @@ class BaseIndividual(BaseComponent):
         """
         Initialize individual from data
         """
+        self._origin = data.get("origin", [])
 
     def show(self):
         """
@@ -130,9 +130,6 @@ class BaseIndividual(BaseComponent):
         Update the origin of the individual after a mutation.
         """
         self._origin.append(f"mutation {self._id}")
-
-    def _init(self, data):
-        self._origin = data.get("origin", [])
 
     @property
     def is_valid(self):

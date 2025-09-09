@@ -1,4 +1,5 @@
 from evopy.utils.options import Options
+from evopy.environment import BaseEnvironment
 from evopy.individual import BaseIndividual
 from evopy.evaluator import BaseEvaluator
 from evopy.selector import BaseSelector
@@ -13,6 +14,7 @@ from evopy.utils.evo_types import Randomized
 
 
 default_opts = Options({
+    "environment": BaseEnvironment,
     # Environment
     "individual": BaseIndividual,
     "evaluator": BaseEvaluator,
@@ -24,6 +26,8 @@ default_opts = Options({
     "graphic": BaseGraphic,
     "interface": BaseInterface,
     "evolution_record": None,
+    "reproducing": False,
+    "from_beginning": False,
 
     "random_seed": 1234567865,
     "max_gen": 10000,
@@ -39,7 +43,7 @@ default_opts = Options({
     "strict_size": True,
 
     # Selector
-    "selection_ratio": 0.50,
+    "selection_ratio": 0.30,
     "allow_invalid": False,
     "allow_copies": True,
     "limit_size": True,
@@ -57,7 +61,7 @@ default_opts = Options({
 
     # Individual
     "individual_size": 100,
-    "has_graph_repr": False,
+    "has_graph_repr": True,
     "has_graph_repr_init": False,
     "repr3d": False,
     # # Chain
@@ -98,8 +102,8 @@ default_opts = Options({
     "end_graph": True,
     "metrics_graph": True,
     "best_elite": True,
-    "best_pop": False,
-    "time_gestion": False,
+    "best_pop": True,
+    "time_gestion": True,
     "metrics_log_scale": True,
 
     # Interface

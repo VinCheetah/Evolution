@@ -22,13 +22,13 @@ class BaseCrosser(BaseComponent):
             Max: 1.
     """
 
-    component_name: str = "Crosser"
-    component_type: str = "Base"
+    component_name = "Crosser"
+    component_type = "Base"
     requirements = [("individual", BaseIndividual)]
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)
-        BaseComponent.__init__(self, options)
+        super().__init__(options)
         self._cross_prob: float = self._options.cross_prob
         self._crossed: int = 0
 

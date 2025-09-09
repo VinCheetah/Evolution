@@ -15,7 +15,9 @@ class ChainMixin(Mixin):
     It is used to add chain requirements and suggestions to the environment.
     """
 
-    Mixin.set_component_type("Chain")
-    Mixin.add_requirement("individual", ChainIndividual)
-    Mixin.add_requirement("mutator", ChainMutator)
-    Mixin.add_requirement("crosser", ChainCrosser)
+    component_type = "Chain"
+    requirements = [
+        ("individual", ChainIndividual),
+        ("mutator", ChainMutator),
+        ("crosser", ChainCrosser),
+    ]

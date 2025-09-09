@@ -16,7 +16,7 @@ class ChainEvaluator(SingleEvaluator):
     Parameters:
     """
 
-    component_type:str = "Chain"
+    component_type: str = "Chain"
     requirements = [("individual", ChainIndividual)]
 
     def iter_ind(self, individual):

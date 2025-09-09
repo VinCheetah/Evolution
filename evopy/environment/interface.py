@@ -19,14 +19,14 @@ class InterfaceEnvironment(BaseEnvironment):
 
     component_type: str = "Interface"
 
-    def __init__(self, options, **kwargs):
-        self._components.append("interface")
-        self._activations["interface"] = True and options.active_interface
+    _components = BaseEnvironment._components + ["interface"]
+    _activations = BaseEnvironment._activations | {"interface": True}
 
+    def __init__(self, options):
         if self.is_active("interface"):
             self.interface: BaseInterface = options.interface
 
-        super().__init__(options, **kwargs)
+        super().__init__(options)
 
     def init_evolution(self):
         super().init_evolution()

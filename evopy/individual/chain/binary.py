@@ -23,13 +23,18 @@ class BinaryChainIndividual(ChainIndividual):
 
     component_type: str = "BinaryChain"
 
-    def __init__(self, options, **kwargs):
+    @classmethod
+    def fixed_options(cls):
+        return {
+            "type_value": int,
+            "min_value": 0,
+            "max_value": 1,
+        } | super().fixed_options()
 
+    def __init__(self, options, **kwargs):
         options.update(kwargs)
-        options.type_value = int
-        options.min_value = 0
-        options.max_value = 1
         super().__init__(options)
+
 
     def flip(self, index: int):
         """

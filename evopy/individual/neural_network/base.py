@@ -14,14 +14,19 @@ class NNIndividual(BaseIndividual):
     """
 
     component_type: str = "NeuralNetwork"
+    _input_size: int
+    _output_size: int
+
+    @classmethod
+    def initialize(cls, options):
+        super().initialize(options)
+        cls._input_size = options.input_size
+        cls._output_size = options.output_size
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)
         BaseIndividual.__init__(self, options, **kwargs)
 
-        self.input_size = options.input_size
-        self.hidden_layers = options.hidden_layers
-        self.output_size = options.output_size
         self.weights = []
         self.biases = []
 
@@ -97,4 +102,4 @@ class NNIndividual(BaseIndividual):
 
     def repr(self):
         """Implement to visualize or describe the neural network structure."""
-        return f"Neural Network: {[self.input_size] + self.hidden_layers + [self.output_size]}"
+        return f"Neural Network: {[self._input_size, self._output_size]}"

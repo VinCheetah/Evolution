@@ -24,11 +24,15 @@ class PermuCrosserPMX(MultiPointCrosser, PermuCrosser):
 
     component_type: str = "PMX"
 
+    @classmethod
+    def fixed_options(cls, options):
+        return {
+            "num_points": 2,
+        } | super().fixed_options(options)
+
     def __init__(self, options, **kwargs):
         options.update(kwargs)
-        options.num_points = 2
-        MultiPointCrosser.__init__(self, options)
-        PermuCrosser.__init__(self, options)
+        super().__init__(options)
 
     def _cross_points(self, data: dict, ind2: PermuIndividual, *idx) -> dict:
         idx1, idx2 = idx

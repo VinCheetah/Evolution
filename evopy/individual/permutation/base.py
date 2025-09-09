@@ -16,13 +16,18 @@ class PermuIndividual(BaseIndividual):
     """
 
     component_type = "Permutation"
+    _size: int
 
-    def __init__(self, options):
+    def __init__(self, options, **kwargs):
+        options.update(kwargs)
         super().__init__(options)
-        self._size: int = self._options.individual_size
 
-        self._permutation: npt.NDArray[np.int_]
-        self._permutation = np.random.permutation(self._size)
+        self._permutation: npt.NDArray[np.int_] = np.random.permutation(self._size)
+        
+    @classmethod
+    def initialize(cls, options):
+        super().initialize(options)
+        cls._size = options.individual_size
 
     @classmethod
     def _create(cls, options, **kwargs) -> "PermuIndividual":
@@ -40,14 +45,14 @@ class PermuIndividual(BaseIndividual):
 
     def _init(self, data):
         super()._init(data)
-        permu = data.get("permutation", None)
-        if permu is None:
+        permutation = data.get("permutation", None)
+        if permutation is None:
             self.log(level="warning", msg="No permutation data")
         else:
             assert (
-                len(permu) == self._size
-            ), f"Permutation should be of size {self._size} but {permu} has size {len(permu)}"
-        self._permutation = permu if permu is not None else np.random.permutation(self._size)
+                len(permutation) == self._size
+            ), f"Permutation should be of size {self._size} but {permutation} has size {len(permutation)}"
+        self._permutation = permutation if permutation is not None else np.random.permutation(self._size)
         self._assert_is_perm()
 
     def swap(self, idx1, idx2) -> bool:
@@ -103,6 +108,7 @@ class PermuIndividual(BaseIndividual):
                 Should be between 1 and the size of the permutation - 1
             length (int): the number of elements to move
                 Should be between 1 and the size of the permutation - 2
+            reverse (bool): if True, the elements will be reversed
 
         Returns:
             bool: True if the move was successful, False otherwise
@@ -113,15 +119,15 @@ class PermuIndividual(BaseIndividual):
             return False
 
         dec_idx_l = max(0, idx + length - self._size)
-        permu_less = np.concatenate(
+        permutation_less = np.concatenate(
             [self._permutation[idx + length - dec_idx_l :], self._permutation[dec_idx_l:idx]]
         )
-        permu_removed = np.concatenate(
+        permutation_removed = np.concatenate(
             [self._permutation[idx : idx + length - dec_idx_l], self._permutation[:dec_idx_l]]
         )
         if reverse:
-            permu_removed = permu_removed[::-1]
-        self._permutation = np.concatenate([permu_less[:dec], permu_removed, permu_less[dec:]])
+            permutation_removed = permutation_removed[::-1]
+        self._permutation = np.concatenate([permutation_less[:dec], permutation_removed, permutation_less[dec:]])
         self._assert_is_perm()
         return True
 
@@ -158,4 +164,4 @@ class PermuIndividual(BaseIndividual):
         self._permutation[index] = value
 
     def __getitem__(self, index: int) -> int:
-        return self._permutation[index]
+        return int(self._permutation[index])

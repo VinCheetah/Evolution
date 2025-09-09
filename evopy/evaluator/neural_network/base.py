@@ -16,8 +16,8 @@ class NNEvaluator(SingleEvaluator, GraphicReprEvaluator):
     It is the base class for any evaluator of a neural network individual
     """
 
-    SingleEvaluator.set_component_type("NeuralNetork")
-    SingleEvaluator.add_requirement("individual", NNIndividual)
+    component_type = "NeuralNetwork"
+    requirements = [("individual", NNIndividual)]
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)

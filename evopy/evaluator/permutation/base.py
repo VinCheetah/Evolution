@@ -15,8 +15,8 @@ class PermuEvaluator(SingleEvaluator):
     It is used to evaluate permutation individuals.
     """
 
-    SingleEvaluator.set_component_type("Permutation")
-    SingleEvaluator.add_requirement("individual", PermuIndividual)
+    component_type = "Permutation"
+    _requirements = [("individual", PermuIndividual)]
 
     def _evaluate(self, individual: PermuIndividual) -> float:
         return self._evaluate_permu(individual.get_permutation())

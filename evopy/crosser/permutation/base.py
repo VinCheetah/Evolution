@@ -21,7 +21,7 @@ class PermuCrosser(BaseCrosser):
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)
-        BaseCrosser.__init__(self, options)
+        super().__init__(options)
 
     def _cross(self, ind1: PermuIndividual, ind2: PermuIndividual) -> dict:
         size: int = len(ind1)

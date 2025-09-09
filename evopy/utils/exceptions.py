@@ -13,3 +13,10 @@ class IgnoreException(Exception):
         This method initializes the exception with a message.
         """
         super().__init__(message)
+
+
+class EmptyEliteException(Exception):
+    """
+    This is the EmptyEliteException class.
+    """
+    pass

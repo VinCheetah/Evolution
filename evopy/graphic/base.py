@@ -34,14 +34,11 @@ class BaseGraphic(BaseComponent):
 
     """
 
-    _component_type: str = "Base"
-    BaseComponent.set_component_name("Graphic")
-    BaseComponent.set_component_type("Base")
-    init_requires_environment: bool = True
+    component_type: str = "Base"
+    component_name = "Graphic"
 
-    def __init__(self, env, options, **kwargs):
-        self.env = env
-        options.update(kwargs)
+    def __init__(self, options):
+        self.env = options.env
         BaseComponent.__init__(self, options)
         self._repr3d_ind: bool = self._options.repr3d
         self._end_graph: bool = self._options.end_graph
@@ -49,6 +46,7 @@ class BaseGraphic(BaseComponent):
         self._best_elite: bool = (
             self._options.best_elite & (self._options.elite_size > 0) & self._options.has_graph_repr
         )
+        print(self._options.best_elite, self._options.elite_size > 0, self._options.has_graph_repr)
         self._best_pop: bool = self._options.best_pop & self._options.has_graph_repr
         self._time_gestion: bool = self._options.time_gestion
         self._num_graphs: int = (
@@ -219,7 +217,7 @@ class BaseGraphic(BaseComponent):
         """
         Store the durations of the current generation.
         """
-        durations = self.env.get_durations()
+        durations = self.env.components_duration()
         gap = 0
         self._selection_time_data.append(durations["selector"] + gap)
         gap += durations["selector"]

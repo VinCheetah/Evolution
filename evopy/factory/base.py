@@ -1,10 +1,11 @@
 from evopy.utils.default_options import default_opts
 from evopy.utils.options_collector import get_evopy_summary
 from evopy.utils.docstring_collector import get_evopy_summary as get_evopy_docstring
-from evopy.utils.evo_types import Unknown
 from evopy.utils.options import Options
 from evopy.component import BaseComponent
 from typing import Optional, Union, Callable
+from evopy.utils.evo_types import Random, Unknown
+import pprint
 
 
 class BaseFactory(BaseComponent):
@@ -30,17 +31,18 @@ class BaseFactory(BaseComponent):
         self.options: dict = {}
         self.components_classes: dict[str, list[type]] = {}
         self.components: list[type] = []
-        self.string_comp: dict[str, type] = {}
+        self.string_comp: dict[str, type[BaseComponent]] = {}
         self._init_components()
         
     def _init_components(self):
         """
         Find all components of a given class name in the options summary.
         """
-        self.components_classes = {component_type: list(components.keys()) for component_type, components in self.options_summary.items()}
         for component_type, components in self.options_summary.items():
+            self.components_classes[component_type] = list(components.keys())
             for component in components:
                 if isinstance(component, type):
+                    assert issubclass(component, BaseComponent)
                     self.components.append(component)
                     self.string_comp[component.__name__] = component
 
@@ -85,16 +87,15 @@ class BaseFactory(BaseComponent):
                 return components_dict[component_class]
         print(f"Component {component} not found in options summary")
 
-    def _recursive_find(self, structure: dict, key, find_dict: bool = True):
+    def _recursive_find(self, structure: dict, key, find_param: bool = True):
         """
         Recursively search for a key in the options summary structure.
         """
-        print(structure)
-        if key in structure and (not find_dict ^ isinstance(structure[key], dict)):
+        if key in structure and (not find_param or (isinstance(structure[key], dict) and 'parameter' in structure[key] and structure[key]['parameter'])):
             return structure[key]
         for value in structure.values():
             if isinstance(value, dict):
-                result = self._recursive_find(value, key, find_dict)
+                result = self._recursive_find(value, key, find_param)
                 if result is not None:
                     return result
         return None
@@ -129,12 +130,13 @@ class BaseFactory(BaseComponent):
         """
         return self.options_default.get(key)
 
-    def get_option_type(self, key: str) -> type:
+    def get_type(self, key: str) -> type:
         """
         Retrieve the type of specific option recursively from the summary.
         """
         no_type_msg = f"Missing type for option '{key}'"
-        param = self._recursive_find(self.options_summary, key, find_dict=True)
+        param = self._recursive_find(self.options_summary, key, find_param=True)
+        print(f"Parameter {key} found {param}")
         if param is None or "type" not in param:
             self.log("warning", no_type_msg)
             exit(0)
@@ -142,6 +144,8 @@ class BaseFactory(BaseComponent):
             return self.str_to_type(param["type"])
 
     def str_to_type(self, str_type):
+        if isinstance(str_type, list):
+            return Union[*map(self.str_to_type, str_type)]
         if str_type in self.string_comp:
             return self.string_comp[str_type]
         return eval(str_type)
@@ -150,17 +154,17 @@ class BaseFactory(BaseComponent):
         """
         Returns the list of evopy components that the user should use.
         """
-        unused_components = [] #["utils", "factory"]
+        unused_components = ["factory", "component"]
         return [comp_type for comp_type in self.components_classes.keys() if comp_type not in unused_components]
 
     def validate_option(self, key: str, value):
         """
         Validate if the value matches the expected type from the summary.
         """
-        expected_type = self.get_option_type(key)
+        expected_type = self.get_type(key)
         if expected_type is None:
             raise ValueError(f"Unknown option key: {key}")
-        if expected_type is not None and not isinstance(value, expected_type):
+        elif not (isinstance(value, expected_type) or issubclass(value, expected_type)):
             raise TypeError(f"Invalid type for key '{key}'. Expected {expected_type}, got {type(value)}.")
 
     def set_option(self, key, value):
@@ -170,7 +174,7 @@ class BaseFactory(BaseComponent):
         self.validate_option(key, value)
         self.options[key] = value
 
-    def get_option(self, key):
+    def get_value(self, key):
         """
         Retrieve the value of an option, defaulting to the default options if not explicitly set.
         """
@@ -215,7 +219,7 @@ class BaseFactory(BaseComponent):
         """
         List all current option settings.
         """
-        return {key: self.get_option(key) for key in self.options_default.keys()}
+        return {key: self.get_value(key) for key in self.options_default.keys()}
 
     def get_choices(self, component_type):
         """
@@ -260,7 +264,7 @@ class BaseFactory(BaseComponent):
         return parameters[::-1]
 
     def is_valid_parameter(self, parameter, parameter_name):
-        parameter_type = self.get_option_type(parameter_name)
+        parameter_type = self.get_type(parameter_name)
         if isinstance(parameter_type, list):
             return any([map(lambda param_type: self.is_valid_parameter(parameter, param_type), parameter_type)])
         else:
@@ -288,8 +292,8 @@ class BaseFactory(BaseComponent):
         return {
             "key": key,
             "default_value": self.get_default_value(key),
-            "type": self.get_option_type(key),
-            "current_value": self.get_option(key),
+            "type": self.get_type(key),
+            "current_value": self.get_value(key),
             "description": self.get_description(key),
         }
 

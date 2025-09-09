@@ -17,16 +17,21 @@ class SalesManEvaluator(PermuEvaluator, GraphicReprEvaluator):
     This class is a subclass of the PermuEvaluator and GraphicReprEvaluator classes.
     """
 
-    PermuEvaluator.set_component_type("SalesMan")
+    component_type = "SalesMan"
+
+    @classmethod
+    def fixed_options(cls, options):
+        
+        if cls.is_random(options.cities):
+            return cls.create_cities()
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)
+        super().__init__(options)
         self.cities = options.cities if options.cities == Random else self.create_cities(options.individual_size)
         options.cities = self.cities
         self.weights = options.weights = self.create_weights()
         options.individual_size = len(self.cities)
-        PermuEvaluator.__init__(self, options)
-        GraphicReprEvaluator.__init__(self, options)
 
     def _evaluate_permu(self, permutation: list):
         tot = 0

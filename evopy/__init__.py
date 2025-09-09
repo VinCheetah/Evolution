@@ -15,7 +15,7 @@ This package contains the following subpackages:
 - factory
 - utils
 
-You can create an environmennt directly with the Environment class and the options.
+You can create an environment directly with the Environment class and the options.
 Otherwise, you can create one using the factory.
 
 Once you have an environment, you can run the algorithm with the 'evolve' method.

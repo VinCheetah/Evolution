@@ -7,6 +7,7 @@ import numpy as np
 from evopy.component import BaseComponent
 from evopy.individual import BaseIndividual
 from evopy.population import BasePopulation
+from evopy.utils.exceptions import EmptyEliteException
 
 
 class BaseElite(BaseComponent):
@@ -23,7 +24,7 @@ class BaseElite(BaseComponent):
 
     def __init__(self, options, **kwargs):
         options.update(kwargs)
-        BaseComponent.__init__(self, options)
+        super().__init__(options)
         self._elite_size: int = options.elite_size
         self._elite: list[BaseIndividual] = []
         self._elite_scores: np.ndarray = np.array([])
@@ -48,6 +49,8 @@ class BaseElite(BaseComponent):
         """
         Return the best individual in the elite
         """
+        if len(self._elite) == 0:
+            raise EmptyEliteException("Elite is empty.")
         return self[0]
 
     def show(self):
