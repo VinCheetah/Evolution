@@ -4,7 +4,7 @@ This class is a subclass of BaseMutator.
 """
 
 import numpy as np
-from evopy.mutator.multi_mutator import MultiMutator
+from evopy.mutator.multi import MultiMutator
 from evopy.individual import PermuIndividual
 
 

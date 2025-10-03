@@ -21,6 +21,7 @@ Otherwise, you can create one using the factory.
 Once you have an environment, you can run the algorithm with the 'evolve' method.
 """
 
+from evopy.component import *
 from evopy import utils
 from evopy import individual
 from evopy import population
@@ -31,6 +32,7 @@ from evopy import elite
 from evopy import graphic
 from evopy import interface
 from evopy import environment
+from evopy import options
 from evopy import factory
 
 
@@ -44,6 +46,7 @@ __all__ = [
     "elite",
     "graphic",
     "interface",
+    "options",
     "factory",
     "utils",
 ]

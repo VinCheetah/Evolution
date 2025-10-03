@@ -10,6 +10,11 @@ from evopy.utils.evo_types import Unknown
 from pathlib import Path
 
 bin_folder = ["utils", "factory", "__pycache__"]
+additional_params = """
+parameters:
+    * environment (BaseEnvironment): Class of the environments
+    * component (BaseComponent): Class of the components
+"""
 
 def parse_parameters(docstring: str) -> Dict[str, Dict[str, Any]]:
     parameters = {}
@@ -121,6 +126,7 @@ def build_project_structure(root_path: str) -> Dict[str, Any]:
             component_dict = analyze_component(entry_path, f"{module_name}.{entry}", root_path)
             if component_dict:
                 structure[entry] = component_dict
+    structure['extra'] = parse_parameters(additional_params)
     return structure
 
 def get_evopy_summary():

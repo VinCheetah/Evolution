@@ -12,6 +12,7 @@ This package contains the following classes:
     - FunctionEvaluator
     - SeparatorEvaluator
 - NNEvaluator
+    - NEATvaluator
     - RaceCarEvaluator
 
 The BaseEvaluator class is the base class for all the evaluator classes.
@@ -27,6 +28,7 @@ from evopy.evaluator.chain.base import ChainEvaluator
 from evopy.evaluator.chain.function import FunctionEvaluator
 from evopy.evaluator.chain.separator import SeparatorEvaluator
 from evopy.evaluator.neural_network.base import NNEvaluator
+from evopy.evaluator.neural_network.neat import NEATEvaluator
 from evopy.evaluator.neural_network.race_car import RaceCarEvaluator
 
 
@@ -41,5 +43,6 @@ __all__ = [
     "FunctionEvaluator",
     "SeparatorEvaluator",
     "NNEvaluator",
+    "NEATEvaluator",
     "RaceCarEvaluator",
 ]

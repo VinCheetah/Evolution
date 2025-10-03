@@ -3,6 +3,8 @@ Defines the base class for mutators
 """
 
 from abc import abstractmethod
+from typing import Callable
+
 import numpy as np
 from evopy.component import BaseComponent
 from evopy.population import BasePopulation
@@ -20,7 +22,7 @@ class BaseMutator(BaseComponent):
             Min: 0
             Max: 1
         * multi_mutation (bool): Whether mutations can be performed multiple times on the same individual
-        * multi_mode (str): The mode of choosing probability to consider mutate the same individual another time. Used only when multi_mutation is True
+        * multi_mutation_mode (str): The mode of choosing probability to consider mutate the same individual another time. Used only when multi_mutation is True
             Choices: times, squared, linear
     """
 
@@ -48,25 +50,36 @@ class BaseMutator(BaseComponent):
         self._mutated_individuals = 0
         self._mutations = 0
         for individual in population:
-            mut_prob = self._mut_prob
-            mutation_occured = False
-            while mut_prob > np.random.rand():
-                self._mutations += 1
-                mutation_occured = self._mutate(individual) | mutation_occured
-                if self._multi_mutation:
-                    match self._multi_mode:
-                        case "times":
-                            mut_prob = mut_prob * self._mut_prob
-                        case "squared":
-                            mut_prob = mut_prob**2
-                        case "linear":
-                            pass
-                else:
-                    break
-            if mutation_occured:
+            has_mutate = self._apply_mutation(individual)
+            if has_mutate:
                 population.unsorted()
                 self._mutated_individuals += 1
                 individual.has_mutate()
+
+    def _apply_mutation(self, individual: BaseIndividual) -> bool:
+        return self._apply_mut(individual, self._mut_prob, self._mutate)
+
+    def _apply_mut(self, individual: BaseIndividual, mutation_prob: float, mut_func: Callable) -> bool:
+        has_mutate = False
+        mut_prob = mutation_prob
+        while mut_prob > np.random.rand():
+            self._mutations += 1
+            has_mutate |= mut_func(individual)
+            if self._multi_mutation:
+                mut_prob = self._update_mut_prob(mut_prob, mutation_prob)
+            else:
+                break
+        return has_mutate
+
+    def _update_mut_prob(self, mut_prob: float, original_mut_prob: float) -> float:
+        match self._multi_mode:
+            case "times":
+                mut_prob = mut_prob * original_mut_prob
+            case "squared":
+                mut_prob = mut_prob ** 2
+            case "linear":
+                pass
+        return mut_prob
 
     @abstractmethod
     def _mutate(self, individual: BaseIndividual) -> bool:

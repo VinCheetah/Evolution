@@ -12,7 +12,8 @@ The BaseMutator class is the base class for all mutators.
 """
 
 from evopy.mutator.base import BaseMutator
-from evopy.mutator.multi_mutator import MultiMutator
+from evopy.mutator.multi import MultiMutator
+from evopy.mutator.successive import SuccessiveMutator
 from evopy.mutator.permutation.base import PermuMutator
 from evopy.mutator.chain.base import ChainMutator
 from evopy.mutator.chain.binary import BinaryChainMutator
@@ -21,6 +22,7 @@ from evopy.mutator.chain.binary import BinaryChainMutator
 __all__ = [
     "BaseMutator",
     "MultiMutator",
+    "SuccessiveMutator",
     "PermuMutator",
     "ChainMutator",
     "BinaryChainMutator",

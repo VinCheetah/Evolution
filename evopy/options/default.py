@@ -1,4 +1,4 @@
-from evopy.utils.options import Options
+from evopy.component import BaseComponent
 from evopy.environment import BaseEnvironment
 from evopy.individual import BaseIndividual
 from evopy.evaluator import BaseEvaluator
@@ -9,12 +9,13 @@ from evopy.population import BasePopulation
 from evopy.elite import BaseElite
 from evopy.graphic import BaseGraphic
 from evopy.interface.base import BaseInterface
-from evopy.utils.evo_types import Randomized
+from evopy.utils.evo_types import Random, Randomized
+from evopy.utils.activations import relu_activation
+from evopy.utils.aggregations import sum_aggregation
 
-
-
-default_opts = Options({
+default = {
     "environment": BaseEnvironment,
+    "component": BaseComponent,
     # Environment
     "individual": BaseIndividual,
     "evaluator": BaseEvaluator,
@@ -30,7 +31,7 @@ default_opts = Options({
     "from_beginning": False,
 
     "random_seed": 1234567865,
-    "max_gen": 10000,
+    "max_gen": 100,
     "timeout": 1000,
     "eval_timeout": -1,
     "keep_sorted": True,
@@ -54,7 +55,7 @@ default_opts = Options({
     ## Tournament
     "tournament_mode_ratio": False,
     "tournament_size_ratio": 0.1,
-    "tournament_size": 20,
+    "tournament_size": 18,
     ## Wheel
     "wheel_selection_mode": "softmax",
     "wheel_power": 3,
@@ -68,17 +69,51 @@ default_opts = Options({
     "min_value": -.5,
     "max_value": .5,
     "type_value": float,
+    # # NN
+    "input_size": 1,
+    "output_size": 1,
+    "hidden": [],
+    # # # NEAT
+    "bias_init_mean": 0,
+    "bias_init_std": 0,
+    "bias_max_value": 0,
+    "bias_min_value": 0,
+    "response_init_mean": 0,
+    "response_init_std": 0,
+    "response_max_value": 0,
+    "response_min_value": 0,
+    "activation_options": {"relu": relu_activation},
+    "activation_default": "relu",
+    "aggregation_options": {"sum": sum_aggregation},
+    "aggregation_default": "sum",
+    "weight_init_mean": 0,
+    "weight_init_std": 0,
+    "weight_max_value": 0,
+    "weight_min_value": 0,
+    "enabled_default": True,
 
     # Mutator
     "mutation_prob": 0.3,
     "multi_mutation": True,
+    "multi_mode": False,
     "multi_mutation_mode": "power",
+    # NEAT
+    "add_connection_prob": 0.2,
+    "del_connection_prob": 0.1,
+    "add_node_prob":0.1,
+    "del_node_prob": 0.05,
+    "toggle_connection_prob": 0.05,
+    "weight_mutation_prob": 0.3,
+    "reset_weight_prob": 0.1,
+    "weight_mutation_power": 0.3,
 
     # Crosser
-    "cross_prob": 0.5,
+    "cross_prob": 0.1,
     # # MultiPointCrosser
     "num_points": 2,
     "num_cross": 1,
+    # # # NEAT
+    "disable_inheritance_prob": 0.75,
 
     # Elite
     "create_elite": True,
@@ -89,11 +124,13 @@ default_opts = Options({
     "invalid_fit_value": 0,
     "unevaluated_time": 0,
     # # PermuEval
-    "weights": Randomized,
+    "weights": Random,
     # # # TSP
-    "cities": Randomized,
+    "cities": Random,
     # # # Separator
     "separator_weights": Randomized,
+    # # NNEval
+
 
     # Graphic
     "active_graphic": True,
@@ -110,12 +147,22 @@ default_opts = Options({
     "active_interface": True,
 
     # Reproduction
-    "tracking": True,
+    "tracking": False,
     "record_folder": "evo_records",
     "record_subfolder": "default",
     "record_file": "evo",
     "record_file_spec": "",
 
+    #Logger
+    "active_c_logg": True,
+    "c_logg_level": "Warning",
+    "c_logg_format": '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    "active_f_logg": False,
+    "logg_file_name": "evo.log",
+    "f_logg_level": "Info",
+    "f_logg_format": '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    "filtered_components": [],
+
     # Report
     "create_report": True
-})
+}

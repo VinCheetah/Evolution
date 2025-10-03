@@ -20,6 +20,8 @@ from evopy.crosser.permutation.base import PermuCrosser
 from evopy.crosser.permutation.pmx import PermuCrosserPMX
 from evopy.crosser.chain.base import ChainCrosser
 from evopy.crosser.chain.mean import MeanChainCrosser
+from evopy.crosser.neural_network.base import NeuralNetworkCrosser
+from evopy.crosser.neural_network.neat import NEATCrosser
 
 
 __all__ = [
@@ -29,4 +31,6 @@ __all__ = [
     "PermuCrosserPMX",
     "ChainCrosser",
     "MeanChainCrosser",
+    "NeuralNetworkCrosser",
+    "NEATCrosser",
 ]

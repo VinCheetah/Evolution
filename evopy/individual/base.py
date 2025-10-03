@@ -1,10 +1,23 @@
 """ 
 Defines the BaseIndividual class.
 This class is the base class for all individuals.
+
+
+Description of the main methods:
+    - from_data
+        Creates an individual with some specific data, s.t. a predefined genome
+    - create
+        Creates an individual from scratch, with randomly generated genome
+
+Subclasses of an individual should include following methods:
+    - _init
+        Initialize a new individual given some data
+    - get_data
+        returns a copy of the data of an individual
+
 """
 
 from abc import abstractmethod
-from copy import deepcopy
 from evopy.component import BaseComponent
 
 
@@ -21,10 +34,9 @@ class BaseIndividual(BaseComponent):
     component_type: str = "Base"
     _id_counter: int = 0
 
-    def __init__(self, options, **kwargs):
-        options.update(kwargs)
-        BaseComponent.__init__(self, options)
-        self._id: int
+    def __init__(self, options):
+        super().__init__(options)
+        self._id: int = ...
         self.set_new_id()
 
         self._is_evaluated: bool = False
@@ -34,9 +46,7 @@ class BaseIndividual(BaseComponent):
         self._evaluation: tuple[float, float, str] = (0., 0., "")
 
     @classmethod
-    def from_data(
-        cls, options, data: dict, origin: list[str], set_id: int = -1
-    ) -> "BaseIndividual":
+    def from_data(cls, options, data: dict, origin: list[str], set_id: int | None = None) -> "BaseIndividual":
         """
         Create an individual from data.
 
@@ -48,7 +58,7 @@ class BaseIndividual(BaseComponent):
             The data of the individual.
         origin : list[str]
             The origin of the individual.
-        set_id : int, optional (default=-1)
+        set_id : int | None, optional (default=None)
             The id of the individual. If None, a new id is generated.
 
         Returns
@@ -60,33 +70,38 @@ class BaseIndividual(BaseComponent):
         new_ind._init(data)
 
         new_ind.set_origin(origin)
-        if set_id := -1:
-            new_ind.set_new_id(set_id)
+        new_ind.set_new_id(set_id)
         return new_ind
 
     @classmethod
-    def create(cls, options, **kwargs) -> "BaseIndividual":
+    def create(cls, options) -> "BaseIndividual":
         """
         Create a new individual
         """
         # cls._valid_create_args(*args, **kwargs)
-        new_ind = cls._create(options, **kwargs)
+        new_ind = cls._create(options)
         assert isinstance(new_ind, BaseIndividual)
         return new_ind
 
     @classmethod
     @abstractmethod
-    def _create(cls, options, **kwargs) -> "BaseIndividual":
+    def _create(cls, options) -> "BaseIndividual":
         """
         Create a random individual
         """
+        return cls(options)
 
     @abstractmethod
     def _init(self, data) -> None:
         """
         Initialize individual from data
         """
-        self._origin = data.get("origin", [])
+
+    @abstractmethod
+    def get_data(self) -> dict:
+        """
+        Get a copy of the data of the individual.
+        """
 
     def show(self):
         """
@@ -174,12 +189,6 @@ class BaseIndividual(BaseComponent):
         self._is_evaluated = True
         self._evaluation = (fitness, time, err_eval)
 
-    def get_data(self) -> dict:
-        """
-        Get the data of the individual.
-        """
-        return {"origin": self._origin}
-
     def get_eval_data(self):
         """
         Get the evaluation data of the individual.
@@ -195,19 +204,17 @@ class BaseIndividual(BaseComponent):
         """
         Transfer the evaluation data from another individual.
         """
-        side_data = ind.get_eval_data()
-        self._is_evaluated = side_data["is_evaluated"]
-        self._evaluation = side_data["evaluation"]
-        self._survived_gen = side_data["survived_gen"]
-        self._gen_birth = side_data["gen_birth"]
+        eval_data = ind.get_eval_data()
+        self._is_evaluated = eval_data["is_evaluated"]
+        self._evaluation = eval_data["evaluation"]
+        self._survived_gen = eval_data["survived_gen"]
+        self._gen_birth = eval_data["gen_birth"]
 
     def copy(self) -> "BaseIndividual":
         """
         Copy the individual.
         """
-        copy = self.from_data(
-            self._options, deepcopy(self.get_data()), self._origin, set_id=self._id
-        )
+        copy = self.from_data(self._options, self.get_data(), self._origin.copy(), set_id=self._id)
         copy.transfer_eval_data(self)
         return copy
 

@@ -50,23 +50,13 @@ class ChainIndividual(BaseIndividual):
         cls._max_value = options.max_value
         cls._size = options.individual_size
 
-    @classmethod
-    def _create(cls, options, **kwargs) -> "ChainIndividual":
-        """
-        Create a new ChainIndividual instance.
-        """
-        options.update(kwargs)
-        return cls(options)
-
     def _init(self, data):
         super()._init(data)
         chain = data.get("chain", None)
         if chain is None:
             self.log(level="warning", msg="No chain data")
         else:
-            assert (
-                len(chain) == self._size
-            ), f"Chain should be of size {self._size} but {chain} has size {len(chain)}"
+            assert len(chain) == self._size, f"Chain should be of size {self._size} but {chain} has size {len(chain)}"
         self._chain = chain if chain is not None else np.random.permutation(self._size)
         self._assert_is_chain()
 
@@ -108,7 +98,8 @@ class ChainIndividual(BaseIndividual):
     def __len__(self) -> int:
         return self._size
 
-    def __setitem__(self, index, value) -> None:
+    def __setitem__(self, index: int, value) -> None:
+        assert type(value) == self._type_value, f"Chain should be of type {self._type_value}, but {value} has type {type(value)}"
         self._chain[index] = value
 
     def __getitem__(self, index: int):

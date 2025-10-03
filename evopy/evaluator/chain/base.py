@@ -4,6 +4,7 @@ This class is a subclass of the SingleEvaluator class.
 """
 
 from abc import abstractmethod
+from numpy import ndarray
 from evopy.evaluator.single import SingleEvaluator
 from evopy.individual import ChainIndividual
 
@@ -35,7 +36,7 @@ class ChainEvaluator(SingleEvaluator):
         return self._evaluate_chain(individual.get_chain())
 
     @abstractmethod
-    def _evaluate_chain(self, chain: list) -> float:
+    def _evaluate_chain(self, chain: ndarray) -> float:
         """
         Evaluate the chain
         """

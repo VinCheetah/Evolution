@@ -12,7 +12,7 @@ from evopy.mutator.base import BaseMutator
 class MultiMutator(BaseMutator):
     """
     MultiMutator class.
-    This class permits to enable multiple mutators at the same time.
+    This class permits to enable multiple mutator functions at the same time.
 
     Parameters:
     """

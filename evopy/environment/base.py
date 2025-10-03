@@ -38,13 +38,12 @@ class BaseEnvironment(BaseComponent):
             Min: 0
         * random_seed (int): Random seed
             Min: 0
-
         * create_report (bool): Whether to create report for each generation
         * reproducing (bool): Reproduce an evolution using a previous record
         * from_beginning (bool): Whether to start from beginning if there is a reproducing record
         * evolution_record (Optional[dict]): Evolution record of an evolution. Should be given at the end of a tracking evolution
         * tracking (bool): Record the evolution
-
+            Disable: record_folder, record_subfolder, record_file, record_file_spec
         * record_folder (str): Folder where to save the records
         * record_subfolder (str): Subfolder where to save the records
         * record_file (str): File where to save the records
@@ -177,7 +176,6 @@ class BaseEnvironment(BaseComponent):
             setattr(self, component_name, init_comp)
         else:
             comp.initialize(self._options)
-
 
     def _verif_init_comp(self, component_name) -> bool:
         """Verify if a component needs to be initialized"""

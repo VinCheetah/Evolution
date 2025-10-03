@@ -4,7 +4,6 @@ Defines the base class for components, providing logging and timing utilities.
 
 from time import time
 from functools import wraps
-from evopy.utils.options import Options
 from evopy.utils.logger import create_logger, logg_levels_str
 from evopy.utils.evo_types import Random, Unknown
 from typing import Optional
@@ -14,23 +13,43 @@ class BaseComponent:
     """Base class for components, providing logging and timing utilities.
 
     Parameters:
+        * active_c_logg (bool): Whether the stream logger is currently active.
+            Disable: c_logg_level, c_logg_format
+        * c_logg_level (str): Logging level of the stream logger.
+            Choices: "Debug", "Info", "Warning", "Error", "Critical"
+        * c_logg_format (str): String format of the stream logger. It might contain the variables: asctime, name, levelname, message
+        * active_f_logg (bool): Whether the logger is currently active.
+            Disable: logg_file_name, f_logg_level, f_logg_format
+        * logg_file_name (str): Name of the logging file.
+        * f_logg_level (str): Logging level of the file logger.
+            Choices: "Debug", "Info", "Warning", "Error", "Critical"
+        * f_logg_format (str): String format of the file logger. It might contain variables: asctime, name, levelname, message
+        * filtered_components (list[str]): List of components to filter.
     """
 
-    _logger = create_logger()
+    _logger = None
     requirements: dict[str, list] = {}
     component_type: str = "Base"
     component_name: str = "Component"
 
-    def __init__(self, options: Options, **kwargs):
+    def __init__(self, options: "Options"):
         """
         Initialize the component with options.
 
         Args:
             options (Options): Configuration options for the component.
         """
-        options.update(kwargs)
-        self._options: Options = options
+        self._options: "Options" = options
         self._duration: float = 0
+        log_options = ["active_c_logg", "c_logg_level", "c_logg_format", "active_f_logg", "logg_file_name",
+                       "f_logg_level", "f_logg_format", "filtered_components"]
+        self._logg_params: dict = {key: getattr(self._options, key) for key in log_options}
+        self.set_logger(self._logg_params)
+
+    @classmethod
+    def set_logger(cls, logg_params, replace=False):
+        if cls._logger is None or replace:
+            cls._logger = create_logger(**logg_params)
 
     @classmethod
     def get_components(cls) -> list:
@@ -174,7 +193,7 @@ class BaseComponent:
         Raises:
             ValueError: If the log level string is invalid.
         """
-        level = level.lower()
+        level = level.capitalize()
         if level not in logg_levels_str:
             error = f"Log level should be one of {', '.join(logg_levels_str)}. Got '{level}'"
             raise ValueError(error)
@@ -206,6 +225,14 @@ class BaseComponent:
         pass
 
     @classmethod
-    def fixed_options(cls, options):
+    def fixed_options(cls):
         """Returns the modification of the options that the component is requiring."""
         return {}
+
+    @classmethod
+    def transfer_options(cls, names: str | list[str], options: "Options", target=None, protected: bool=False):
+        if not type(names) == list:
+            names = [names]
+        target = target or cls
+        for name in names:
+            setattr(target,  ("_" if protected else "") + name, getattr(options, name))

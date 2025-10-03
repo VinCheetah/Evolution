@@ -1,3 +1,4 @@
+import numpy as np
 
 
 class Random:
@@ -5,6 +6,12 @@ class Random:
     """
     Indicates that the value will be randomly generated during initialisation.
     """
+
+    def __init__(self, seed=None):
+        self.seed = seed
+
+        np.random.seed(seed)
+
     
     def __str__(self):
         return "Random"

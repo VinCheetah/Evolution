@@ -18,21 +18,14 @@ class PermuIndividual(BaseIndividual):
     component_type = "Permutation"
     _size: int
 
-    def __init__(self, options, **kwargs):
-        options.update(kwargs)
+    def __init__(self, options):
         super().__init__(options)
-
         self._permutation: npt.NDArray[np.int_] = np.random.permutation(self._size)
         
     @classmethod
     def initialize(cls, options):
         super().initialize(options)
         cls._size = options.individual_size
-
-    @classmethod
-    def _create(cls, options, **kwargs) -> "PermuIndividual":
-        options.update(kwargs)
-        return cls(options)
 
     def get_data(self) -> dict:
         return super().get_data() | {"permutation": self._permutation.copy()}

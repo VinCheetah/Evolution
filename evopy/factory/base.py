@@ -1,11 +1,14 @@
-from evopy.utils.default_options import default_opts
-from evopy.utils.options_collector import get_evopy_summary
 from evopy.utils.docstring_collector import get_evopy_summary as get_evopy_docstring
 from evopy.utils.options import Options
 from evopy.component import BaseComponent
 from typing import Optional, Union, Callable
-from evopy.utils.evo_types import Random, Unknown
+from evopy.utils.evo_types import Unknown, Random
+import importlib.util
+import sys
 import pprint
+
+import inspect
+from pathlib import Path
 
 
 class BaseFactory(BaseComponent):
@@ -21,12 +24,11 @@ class BaseFactory(BaseComponent):
         string_comp (dict[str, object]): Dictionary of composent names and their objects
 
     """
-    def __init__(self, options_default: Optional[Options] = default_opts, extra_components: Optional[list] = None):
-        BaseComponent.__init__(self, options_default)
+    def __init__(self, extra_components: Optional[list] = None):
+        BaseComponent.__init__(self, Options.get_default())
         self.extra_components = extra_components if extra_components is not None else []
-        # Initialize the options dictionary with metadata
-        self.options_default = options_default
-        self.options_summary_, _ = get_evopy_summary()
+        self.name = "unknown"
+        self.options_default = Options.get_default()
         self.options_summary = get_evopy_docstring()
         self.options: dict = {}
         self.components_classes: dict[str, list[type]] = {}
@@ -72,11 +74,11 @@ class BaseFactory(BaseComponent):
         Returns:
             list: A list of all base classes.
         """
-        base_classes = list(comp_class.__bases__)
+        base_classes = []
         for base in comp_class.__bases__:
-            base_classes.extend(self.get_bases(base))
-        if object in base_classes:
-            base_classes.remove(object)
+            for base_class in self.get_bases(base) + [base]:
+                if base_class not in base_classes and base_class not in (BaseComponent, object):
+                    base_classes.append(base_class)
         base_classes = [self.string_comp[base_class.__name__] for base_class in base_classes if base_class.__name__ in self.string_comp]
         return base_classes
 
@@ -136,10 +138,8 @@ class BaseFactory(BaseComponent):
         """
         no_type_msg = f"Missing type for option '{key}'"
         param = self._recursive_find(self.options_summary, key, find_param=True)
-        print(f"Parameter {key} found {param}")
         if param is None or "type" not in param:
             self.log("warning", no_type_msg)
-            exit(0)
         else:
             return self.str_to_type(param["type"])
 
@@ -154,8 +154,9 @@ class BaseFactory(BaseComponent):
         """
         Returns the list of evopy components that the user should use.
         """
-        unused_components = ["factory", "component"]
-        return [comp_type for comp_type in self.components_classes.keys() if comp_type not in unused_components]
+        unused_components = [] #["factory", "component", "extra"]
+        comps = self.options.get("environment", self.options_default.environment).get_components()
+        return ["environment"] + [comp_type for comp_type in comps if comp_type not in unused_components] + ["component"]
 
     def validate_option(self, key: str, value):
         """
@@ -185,7 +186,7 @@ class BaseFactory(BaseComponent):
         Retrieve the description of an option, defaulting to the default options if not explicitly set.
         """
         no_description_msg = f"Missing description for option '{key}'"
-        param = self._recursive_find(self.options_summary, key, find_dict=True)
+        param = self._recursive_find(self.options_summary, key, find_param=True)
         if param is None or "description" not in param:
             self.log("warning", no_description_msg)
             return no_description_msg
@@ -221,7 +222,7 @@ class BaseFactory(BaseComponent):
         """
         return {key: self.get_value(key) for key in self.options_default.keys()}
 
-    def get_choices(self, component_type):
+    def get_choices_comp(self, component_type):
         """
         Get the available choices for a given component type.
         """
@@ -278,12 +279,71 @@ class BaseFactory(BaseComponent):
 
     def save_options(self, file_path):
         """Save options to a file."""
-        print(f"Options saved to {file_path} (not really saved).")
+        print(f"Options saved to {file_path}")
+        self.save_preset(file_path)
 
     def load_options(self, file_path):
         """Load options from a file."""
-        print(f"Options loaded from {file_path} (not really loaded).")
+        print(f"Options loaded from {file_path}")
+        self.load_preset(file_path)
 
+    def _format_value(self, value, imports):
+        """Format a value for code export, collecting needed imports."""
+        if inspect.isclass(value):
+            module = value.__module__
+            name = value.__name__
+            imports.add(f"from {module} import {name}")
+            return name
+
+        if hasattr(value, "__class__") and value.__class__.__module__.startswith("evopy"):
+            module = value.__class__.__module__
+            name = value.__class__.__name__
+            imports.add(f"from {module} import {name}")
+            return f"{name}()"  # ⚠️ assumes default constructor; can be extended
+
+        return repr(value)
+
+    def save_preset(self, path: str):
+        """Save an Options instance as a Python file that can be re-imported."""
+        file = Path(path)
+        imports = {f"from evopy.utils.options import Options"}
+
+        # Format attributes
+        args = []
+        for key, value in self.options.items():
+            args.append(f"{key} = {self._format_value(value, imports)}")
+
+        args_str = ",\n    ".join(args)
+        imports_str = "\n".join(sorted(imports))
+
+        code = f"""# Auto-generated preset
+{imports_str}
+
+{self.name} = Options('{self.name}',
+    {args_str}
+)
+"""
+        file.write_text(code)
+
+    def load_preset(self, path: str):
+        """Load an object (instance) by name from a Python file."""
+        file_path = Path(path)
+        module_name = file_path.stem
+
+        spec = importlib.util.spec_from_file_location(module_name, file_path)
+        if spec is None:
+            raise ImportError(f"Cannot load spec for {file_path}")
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[module_name] = module
+        spec.loader.exec_module(module)
+        if not hasattr(module, module_name):
+            raise AttributeError(f"{file_path} has no variable '{module_name}'")
+        for key, value in getattr(module, module_name).items():
+            if key in self.get_evopy_components():
+                if not issubclass(self.get_value(key), value):
+                    self.set_option(key, value)
+            else:
+                self.set_option(key, value)
 
     def describe_option(self, key):
         """
@@ -300,4 +360,3 @@ class BaseFactory(BaseComponent):
 
 if __name__ == "__main__":
     factory = BaseFactory()
-    print(factory.get_parameters_for_class("BaseMutator"))

@@ -23,26 +23,15 @@ class NNIndividual(BaseIndividual):
         cls._input_size = options.input_size
         cls._output_size = options.output_size
 
-    def __init__(self, options, **kwargs):
-        options.update(kwargs)
-        BaseIndividual.__init__(self, options, **kwargs)
-
+    def __init__(self, options):
+        BaseIndividual.__init__(self, options)
         self.weights = []
         self.biases = []
-
-        self.initialize_parameters()
-
-    @classmethod
-    def _create(cls, options, **kwargs) -> "NNIndividual":
-        """
-        Create a new NNIndividual instance.
-        """
-        options.update(kwargs)
-        return cls(options)
+        #self.initialize_parameters()
 
     def initialize_parameters(self):
         """Initialize weights and biases for each layer based on the architecture."""
-        layer_sizes = [self.input_size] + self.hidden_layers + [self.output_size]
+        layer_sizes = [self._input_size] + self.hidden_layers + [self._output_size]
 
         for i in range(len(layer_sizes) - 1):
             weight_matrix = np.random.randn(layer_sizes[i], layer_sizes[i + 1])
@@ -86,9 +75,8 @@ class NNIndividual(BaseIndividual):
 
     def get_data(self) -> dict:
         """Override to include neural network specific data in copy."""
-        data = super().get_data()
-        data.update({"weights": self.weights.copy(), "biases": self.biases.copy()})
-        return data
+        sub_data = super().get_data() or {}
+        return sub_data | {"weights": self.weights.copy(), "biases": self.biases.copy()}
 
     def _init(self, data):
         """Initialize individual from given data."""
@@ -102,4 +90,4 @@ class NNIndividual(BaseIndividual):
 
     def repr(self):
         """Implement to visualize or describe the neural network structure."""
-        return f"Neural Network: {[self._input_size, self._output_size]}"
+        return f"Neural Network: {[self._input_size, self._output_size, len(self)]}"

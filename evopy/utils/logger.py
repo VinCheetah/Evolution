@@ -1,41 +1,37 @@
 import logging as lg
 
-# Log Settings
-c_logg_level: int = lg.WARNING
-c_logg_format: str = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
-logg_file_name: str = "evo.log"
-f_logg_level: int = lg.INFO
-f_logg_format: str = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-logg_levels_str: dict = {"debug": lg.DEBUG, "info": lg.INFO, "warning": lg.WARNING, "error": lg.ERROR, "critical": lg.CRITICAL}
-filtered_components: list[str] = []
+logg_levels_str: dict[str, int] = {
+    "Debug": lg.DEBUG,
+    "Info": lg.INFO,
+    "Warning": lg.WARNING,
+    "Error": lg.ERROR,
+    "Critical": lg.CRITICAL
+}
 
-
-
-def create_logger():
+def create_logger(active_c_logg: bool, c_logg_level: str, c_logg_format: str, active_f_logg: bool, logg_file_name: str,
+                  f_logg_level: str, f_logg_format: str, filtered_components: list[str]):
     """
     Create a logger with the specified settings
     """
-    logger = lg.getLogger('my_app_logger')
+    logger = lg.getLogger('evopy_logger')
     logger.setLevel(lg.DEBUG)
 
     if len(filtered_components):
-        filter = ComponentFilter(filtered_components)
-        logger.addFilter(filter)
+        filter_comp = ComponentFilter(filtered_components)
+        logger.addFilter(filter_comp)
 
-    # Create handlers
-    c_handler = lg.StreamHandler()
-    f_handler = lg.FileHandler(logg_file_name, mode="w")
-    c_handler.setLevel(c_logg_level)
-    f_handler.setLevel(f_logg_level)
+    if active_c_logg:
+        c_handler = lg.StreamHandler()
+        c_handler.setLevel(logg_levels_str[c_logg_level])
+        c_handler.setFormatter(lg.Formatter(c_logg_format))
+        logger.addHandler(c_handler)
 
-    # Create formatters and add them to handlers
-    c_handler.setFormatter(lg.Formatter(c_logg_format))
-    f_handler.setFormatter(lg.Formatter(f_logg_format))
-
-    # Add handlers to the logger
-    logger.addHandler(c_handler)
-    logger.addHandler(f_handler)
+    if active_f_logg:
+        f_handler = lg.FileHandler(logg_file_name, mode="w")
+        f_handler.setLevel(logg_levels_str[f_logg_level])
+        f_handler.setFormatter(lg.Formatter(f_logg_format))
+        logger.addHandler(f_handler)
 
     return logger
 

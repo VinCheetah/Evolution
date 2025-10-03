@@ -14,6 +14,14 @@ class NNEvaluator(SingleEvaluator, GraphicReprEvaluator):
     """
     This is the NNEvaluator class.
     It is the base class for any evaluator of a neural network individual
+
+    Parameters:
+        * input_size (int): The size of the input to the neural network
+            Min: 0
+        * output_size (int): The size of the output to the neural network
+            Min: 0
+        * hidden (list[int]): List of the size of the hidden layers of the neural network
+
     """
 
     component_type = "NeuralNetwork"
@@ -28,7 +36,7 @@ class NNEvaluator(SingleEvaluator, GraphicReprEvaluator):
         self._layers: list[int] = [self._input_size] + options.hidden + [self._output_size]
         self._num_layers = len(self._layers)
 
-    @abstractmethod
+    #@abstractmethod
     def _compute_x(self, individual):
         """
         Compute the input for the neural network for the given individual.

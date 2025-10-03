@@ -23,7 +23,8 @@ class InterfaceFactory(BaseFactory, ctk.CTk):
         self.selected_comp_type: str = ...
         self.comps_widgets: set = set()
         self.type_widgets: set = set()
-        self.params_widgets: set = set()
+        self.params_widgets: dict[str, ParameterWidget] = dict()
+        self.active_params_widgets: set[ParameterWidget] = set()
         self.control_widgets: set = set()
         self.comp_type_labels: dict = {}
         self.types_initialized: bool = False
@@ -66,23 +67,62 @@ class InterfaceFactory(BaseFactory, ctk.CTk):
 
         ctk.CTkLabel(self.comps_frame, text="Components", font=("Arial", 28, "bold")).grid(row=0, column=0, columnspan=2, sticky="nsew", pady=20)
 
+        self._comp_widgets = {}
+        self.comp_type_labels = {}
         self.component_var = tk.StringVar()
-        for i, component_name in enumerate(self.get_evopy_components()):
-            self.comps_frame.rowconfigure(i+1, weight=1)
-            ctk.CTkRadioButton(
-                self.comps_frame,
-                text=f"  {component_name.capitalize()}",
-                variable=self.component_var,
-                value=component_name,
-                command=self.comp_type_selected,
-                font=("Lato", 20, "bold"),
-            ).grid(row=i+1, column=0, sticky="nsew", padx=20)
-            comp_type = ctk.CTkLabel(self.comps_frame, text=self.get_value(component_name).component_type if self.get_value(component_name) is not None else "None", font=("Lato", 16, "italic"))
-            comp_type.grid(row=i+1, column=1, sticky="nsew", padx=40)
-            self.comp_type_labels[component_name] = comp_type
+        self.update_component_list()
 
         ctk.CTkButton(self.control_frame, text="Save Options", command=self.save_options_dialog).pack(padx=10, pady=20)
         ctk.CTkButton(self.control_frame, text="Load Options", command=self.load_options_dialog).pack(padx=10, pady=20)
+
+    def update_component_list(self):
+        """Update the radio buttons + labels in the order of get_evopy_components()."""
+        new_components = self.get_evopy_components()
+        current_components = list(self._comp_widgets.keys())
+
+        for name in current_components:
+            if name not in new_components:
+                rb, tl = self._comp_widgets[name]
+                rb.destroy()
+                tl.destroy()
+                del self._comp_widgets[name]
+
+        for i, component_name in enumerate(new_components):
+            self.comps_frame.rowconfigure(i + 1, weight=1)
+
+            if component_name in self._comp_widgets:
+                # Update existing widgets
+                rb, lbl = self._comp_widgets[component_name]
+                rb.configure(text=f"  {component_name.capitalize()}")
+                rb.grid(row=i + 1, column=0, sticky="nsew", padx=20)
+
+                lbl.configure(
+                    text=self.get_value(component_name).component_type
+                    if self.get_value(component_name) is not None
+                    else "None"
+                )
+                lbl.grid(row=i + 1, column=1, sticky="nsew", padx=40)
+            else:
+                rb = ctk.CTkRadioButton(
+                    self.comps_frame,
+                    text=f"  {component_name.capitalize()}",
+                    variable=self.component_var,
+                    value=component_name,
+                    command=self.comp_type_selected,
+                    font=("Lato", 20, "bold"),
+                )
+                rb.grid(row=i + 1, column=0, sticky="nsew", padx=20)
+
+                lbl = ctk.CTkLabel(
+                    self.comps_frame,
+                    text=self.get_value(component_name).component_type
+                    if self.get_value(component_name) is not None
+                    else "None",
+                    font=("Lato", 16, "italic"),
+                )
+                lbl.grid(row=i + 1, column=1, sticky="nsew", padx=40)
+
+                self._comp_widgets[component_name] = rb, lbl
 
     def comp_type_selected(self):
         """Handle selection of a component type."""
@@ -106,7 +146,11 @@ class InterfaceFactory(BaseFactory, ctk.CTk):
             self.init_params_frame()
 
         for widget in self.params_container.winfo_children():
-            widget.destroy()
+            if isinstance(widget, ParameterWidget):
+                widget.pack_forget()
+            else:
+                widget.destroy()
+        self.active_params_widgets.clear()
 
         grouped_params = self.get_all_parameters(component_name)
         if not grouped_params:
@@ -114,30 +158,60 @@ class InterfaceFactory(BaseFactory, ctk.CTk):
             return
         self.params_label.configure(text=f"Parameters for {component_name}")
         for source, params in grouped_params:
-            source_label = ctk.CTkLabel(self.params_container, text=f"From {source}:", font=("Arial", 16, "bold"))
-            source_label.pack(pady=10)
+            ctk.CTkLabel(self.params_container, text=f"From {source}:", font=("Arial", 16, "bold")).pack(pady=10)
 
             for param, info in params.items():
-                param_type = self.str_to_type(info["type"])
-                current_value = self.get_value(param)
-                if isinstance(current_value, type):
-                    current_value = current_value.__name__
-                default_value = self.get_default_value(param)
-
-                if isinstance(default_value, type):
-                    choices = self.get_choices(param_type)
-                else:
-                    choices = None
-
-                ParameterWidget(
-                    master=self.params_container,
-                    parameter_name=param,
-                    current_value=current_value,
-                    default_value=default_value,
-                    param_type=param_type,
-                    choices=choices,
-                ).pack(pady=5, padx=10, fill="x")
+                widget = self.get_param_widget(param, info)
+                widget.pack(pady=5, padx=10, fill="x")
+                self.active_params_widgets.add(widget)
             self.root.update()
+
+    def get_param_widget(self, param: str, info: dict) -> ParameterWidget:
+        if param not in self.params_widgets:
+            self.params_widgets[param] = self.create_param_widget(param, info)
+        return self.params_widgets[param]
+
+    def create_param_widget(self, param: str, info: dict) -> ParameterWidget:
+        param_type = self.str_to_type(info["type"])
+        current_value = self.get_value(param)
+        if isinstance(current_value, type):
+            current_value = current_value.__name__
+        default_value = self.get_default_value(param)
+        extra = self.collect_extra(info)
+
+        if isinstance(default_value, type) and ("choices" not in extra or extra["choices"] is None):
+            extra["choices"] = self.get_choices_comp(param_type)
+        return ParameterWidget(
+            master=self.params_container,
+            parameter_name=param,
+            current_value=current_value,
+            default_value=default_value,
+            param_type=param_type,
+            extra=extra)
+
+    def collect_extra(self, info) -> dict:
+        extra = {}
+        if "extras" in info:
+            choices = None
+            if "choices" in info["extras"]:
+                choices = info["extras"]["choices"].split(", ")
+                try:
+                    choices = list(map(eval, choices))
+                except NameError:
+                    pass
+            extra["choices"] = choices
+            if "min" in info["extras"]:
+                extra["min_value"] = eval(info["extras"]["min"])
+            if "max" in info["extras"]:
+                extra["max_value"] = eval(info["extras"]["max"])
+            if "disable" in info["extras"]:
+                print("TODO: Disable")
+            if "fixed" in info["extras"]:
+                print("TODO: Fixed")
+
+
+
+        return extra
 
     def init_type_frame(self):
         self.types_initialized = True
@@ -151,9 +225,7 @@ class InterfaceFactory(BaseFactory, ctk.CTk):
 
         ctk.CTkButton(self.type_frame, text="Select Existing Component", command=self.select_existing).grid(row=3, column=0, padx=10, pady=10)
 
-        customize_button = ctk.CTkButton(self.type_frame, text="Customize New Component", command=self.customize_new)
-        customize_button.grid(row=3, column=1, padx=10, pady=10)
-        self.type_widgets.add(customize_button)
+        ctk.CTkButton(self.type_frame, text="Save parameters", command=self.save_parameters).grid(row=3, column=2)
 
     def init_params_frame(self):
         self.params_initialized = True
@@ -165,17 +237,6 @@ class InterfaceFactory(BaseFactory, ctk.CTk):
         self.params_container.pack(fill="both", expand=True, padx=10, pady=10)
         canvas = self.params_container._parent_canvas  # internal canvas that actually scrolls
 
-        # Bind keyboard scrolling (only works when canvas has focus)
-        canvas.bind("<Up>", lambda e: canvas.yview_scroll(-1, "units"))
-        canvas.bind("<Down>", lambda e: canvas.yview_scroll(1, "units"))
-        canvas.bind("<Prior>", lambda e: canvas.yview_scroll(-1, "pages"))  # PageUp
-        canvas.bind("<Next>", lambda e: canvas.yview_scroll(1, "pages"))  # PageDown
-
-        # Make canvas focusable when hovered/clicked
-        canvas.bind("<Enter>", lambda e: canvas.focus_set())
-        canvas.bind("<Button-1>", lambda e: canvas.focus_set())
-
-        # --- Mouse / trackpad scrolling ---
         def _on_mousewheel(event):
             if event.num == 4:  # Linux scroll up
                 canvas.yview_scroll(-1, "units")
@@ -184,21 +245,26 @@ class InterfaceFactory(BaseFactory, ctk.CTk):
             elif event.delta:  # Windows / macOS
                 direction = -1 if event.delta > 0 else 1
                 canvas.yview_scroll(direction, "units")
-
+        # Bind keyboard scrolling (only works when canvas has focus)
+        canvas.bind("<Up>", lambda e: canvas.yview_scroll(-1, "units"))
+        canvas.bind("<Down>", lambda e: canvas.yview_scroll(1, "units"))
+        #canvas.bind("<Prior>", lambda e: canvas.yview_scroll(-1, "pages"))  # PageUp
+        #canvas.bind("<Next>", lambda e: canvas.yview_scroll(1, "pages"))  # PageDown
         canvas.bind_all("<MouseWheel>", _on_mousewheel)  # Windows / macOS
         canvas.bind_all("<Button-4>", _on_mousewheel)  # Linux scroll up
         canvas.bind_all("<Button-5>", _on_mousewheel)  # Linux scroll down
-
-        # --- Focus on hover or click so keys/wheel work ---
         canvas.bind("<Enter>", lambda e: canvas.focus_set())
         canvas.bind("<Button-1>", lambda e: canvas.focus_set())
 
-    def customize_new(self):
-        """Handle customization of a new component."""
-        component = self.types_container.get()
-        #options = self.options.get()
-        print(f"Customizing new component: {component} (Options: {None})")
-        self.update_parameters(component)
+    def set_option(self, key, value):
+        super().set_option(key, value)
+        if key in self._comp_widgets:
+            self._comp_widgets[key][1].configure(require_redraw=True, text=self.string_comp[value.__name__].component_type)
+
+    def save_parameters(self):
+        for widget in self.active_params_widgets:
+            if widget.save_value():
+                self.set_option(widget.parameter_name, widget.get_value())
 
     def select_existing(self):
         """Handle the selection of an existing component."""
@@ -207,12 +273,15 @@ class InterfaceFactory(BaseFactory, ctk.CTk):
             return 0
         self.set_option(self.component_var.get(), self.string_comp[component])
         print(f"Selected existing component: {component}")
-        self.comp_type_labels[self.component_var.get()].configure(require_redraw=True, text=self.string_comp[component].component_type)
+        if self.component_var.get() == "environment":
+            self.update_component_list()
+
+        self._comp_widgets[self.component_var.get()][1].configure(require_redraw=True, text=self.string_comp[component].component_type)
         self.update_parameters(component)
 
     def save_options_dialog(self):
         """Save options to a file."""
-        file_path = filedialog.asksaveasfilename(defaultextension=".py", filetypes=[("Options Files", "*.py")])
+        file_path = filedialog.asksaveasfilename(defaultextension=".py", filetypes=[("Options Files", "*.py")], initialfile=self.name)
         if file_path:
             self.save_options(file_path)
 
