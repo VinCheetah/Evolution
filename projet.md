@@ -2,7 +2,8 @@
 
 ## Description du projet
 
-Ce projet a pour but de créer une pseudo librairie python permettant d'utiliser un grand nombre d'algorithmes génétiques et leurs variantes.
+Ce projet a pour but de créer une pseudo librairie python permettant d'utiliser un grand nombre d'algorithmes génétiques et leurs variantes.  
+L'objectif est de créer un cadre très modulable et modifiable pour tester et comparer de nombreuses configurations
 
 ## Tâches
 
@@ -11,7 +12,8 @@ Ce projet a pour but de créer une pseudo librairie python permettant d'utiliser
 - [x] Créer un dépôt sur GitHub
 - [x] Créer un fichier `projet.md`
 - [x] Créer un fichier `README.md`
-- [ ] Créer un fichier `requirements.txt`
+- [x] Réorganisation composant propre
+- [ ] Créer un fichier `requirements.txt` ou poetry ? (se renseigner)
 - [ ] Commenter le code proprement
 - [ ] Créer une `factory`
 
@@ -19,40 +21,27 @@ Ce projet a pour but de créer une pseudo librairie python permettant d'utiliser
 
 - [ ] Créer une structure propre pour gérer l'affichage des données
 - [ ] Intégrer les représentations graphiques dans une interface (potentiellement tkinter)
-- [ ] Mettre en place la possibilité de varier les paramètres des algorithmes en temps réél (avec trace des modifications pour reproduction)
+- [ ] Mettre en place la possibilité de varier les paramètres des algorithmes en temps réél (avec trace des modifications pour reproduction)  
 Implique la mise en place d'une "reproduction" d'évolution avec un format précis
 - [x] Développer le type chaîne binaire classique
 - [x] Développer le type permutation
-- [ ] Développer le type arbre
-- [ ] Développer le type graphe
-- [ ] Ajouter l'interface de l'environe# Evolution
-
-## Description du projet
-
-Ce projet a pour but de créer une pseudo librairie python permettant d'utiliser un grand nombre d'algorithmes génétiques et leurs variantes.
-
-## Tâches
-
-### Structure
-
-- [x] Créer un dépôt sur GitHub
-- [x] Créer un fichier `projet.md`
-- [x] Créer un fichier `README.md`
-- [ ] Créer un fichier `requirements.txt`
-- [ ] Commenter le code proprement
-- [ ] Créer une `factory`
-
-### Développement
-
-- [ ] Créer une structure propre pour gérer l'affichage des données
-- [ ] Intégrer les représentations graphiques dans une interface (potentiellement tkinter)
-- [ ] Mettre en place la possibilité de varier les paramètres des algorithmes en temps réél (avec trace des modifications pour reproduction)
-Implique la mise en place d'une "reproduction" d'évolution avec un format précis
-- [x] Développer le type chaîne binaire classique
-- [x] Développer le type permutation
+- [x] Développer le type Réseau de Neurones
 - [ ] Développer le type arbre
 - [ ] Développer le type graphe
 - [ ] Ajouter l'interface de l'environment avec CustomTkinter
+- [x] Ajouter l'interface de la factory avec CustomTkinter
+- [ ] Gérer les metadata des options pour avoir une meilleure idée de leur usage (type / location)
+
+
+## Projets à tester
+
+- [x] Travelling Sales Man
+- [ ] Créatures dans une grille avec contraintes (vidéo ytb) (implique NeuralNet)
+- [ ] Pipeline (style Evoflow)
+- [ ] Circuit de course, avec des voitures qui apprennent à conduire
+Utiliser des courbes de Bézier pour définir les trajectoires
+Utiliser des réseaux de neurones pour apprendre à conduire
+ment avec CustomTkinter
 - [ ] Ajouter l'interface de la factory avec CustomTkinter
 - [ ] Gérer les metadata des options pour avoir une meilleure idée de leur usage (type / location)
 
@@ -61,38 +50,10 @@ Implique la mise en place d'une "reproduction" d'évolution avec un format préc
 
 - [ ] Créer une classe de Population / Environnement comportant des clusters à évolutions séparées
 Avec mélanges dans des espaces dédiés pour préserver la diversité et la spécialisation de certains individus
+A priori seule la population pourrait être modifiée, et le sélecteur devrait aussi devoir fonctionner avec
+- [ ] Possibilité d'intégrer aussi une nouvelle population pour NEAT -> spéciation (à quel point est-ce utilisable pour d'autres structures de données ?)
+
 
 ### Fix
 
-- [x] Réparer le sélectioneur tournoi
-
-## Projets à tester
-
-- [x] Travelling Sales Man
-- [ ] Créatures dans une grille avec contraintes (vidéo ytb)
-- [ ] Pipeline (style Evoflow)
-- [ ] Circuit de course, avec des voitures qui apprennent à conduire
-Utiliser des courbes de Bézier pour définir les trajectoires
-Utiliser des réseaux de neurones pour apprendre à conduire
-ment avec CustomTkinter
-- [ ] Ajouter l'interface de la factory avec CustomTkinter
-- [ ] Gérer les metadatas des options pour avoir une meilleure idée de leur usage (type / location)
-
-
-### Idées
-
-- [ ] Créer une classe de Population / Environnement comportant des clusters à évolutions séparées
-Avec mélanges dans des espaces dédiés pour préserver la diversité et la spécialisation de certains individus
-
-### Fix
-
-- [x] Réparer le selecteur tournoi
-
-## Projets à tester
-
-- [x] Travelling SalesMan
-- [ ] Créatures dans une grille à contraintes (vidéo ytb)
-- [ ] Pipeline (style Evoflow)
-- [ ] Circuit de course, avec des voitures qui apprennent à conduire
-Utiliser des courbes de Bézier pour définir les trajectoires
-Utiliser des réseaux de neurones pour apprendre à conduire
+- [x] Réparer le sélectionneur tournoi

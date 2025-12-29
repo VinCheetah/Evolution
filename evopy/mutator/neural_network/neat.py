@@ -1,15 +1,10 @@
-from sympy import Min
-
-from evopy.individual import NEATIndividual
-from evopy.mutator.neural_network.base import NeuralNetworkMutator
-
-
 import random
 import numpy as np
 
+from evopy.individual import NEATIndividual
+from evopy.mutator.neural_network.base import NeuralNetworkMutator
 from evopy.mutator.successive import SuccessiveMutator
-from evopy.population import BasePopulation
-from evopy.individual import BaseIndividual
+from evopy.utils.graphs import creates_cycle
 
 
 class NEATMutator(SuccessiveMutator, NeuralNetworkMutator):
@@ -48,7 +43,7 @@ class NEATMutator(SuccessiveMutator, NeuralNetworkMutator):
         """
         NEAT mutation probabilities and parameters.
         """
-        super(NeuralNetworkMutator, self).__init__(options)
+        super().__init__(options)
         self.add_connection_prob: float = self._options.add_connection_prob
         self.del_connection_prob: float = self._options.del_connection_prob
         self.add_node_prob: float = self._options.add_node_prob
@@ -92,9 +87,18 @@ class NEATMutator(SuccessiveMutator, NeuralNetworkMutator):
         if in_node == out_node:
             return False
 
+        # Check if connection already exists
         for conn in individual.iter_connections():
             if (conn.in_node, conn.out_node) == (in_node, out_node):
+                if not conn.enabled:
+                    conn.enable()
+                    individual.built_network = False
+                    return True
                 return False
+
+        enabled_connections = [conn for conn in individual.iter_connections() if conn.enabled]
+        if creates_cycle(enabled_connections, (in_node, out_node)):
+            return False
 
         individual.link(in_node, out_node)
         return True
@@ -117,16 +121,18 @@ class NEATMutator(SuccessiveMutator, NeuralNetworkMutator):
         if not conn.enabled:
             return False
 
-        conn.switch()
-        # Create new node
-        new_node = individual.add_random_node(node_type="hidden")
-        # Create two new _connections
-        individual.link(conn.in_node, new_node)
-        individual.link(new_node, conn.out_node)
+        original_weight = conn.weight
+        conn.disable()
+
+        new_node = individual.create_split_node(conn)
+        conn1 = individual._create_connection(conn.in_node, new_node, weight=1.0, enabled=True)
+        individual.add_connection(conn1)
+        conn2 = individual._create_connection(new_node, conn.out_node, weight=original_weight, enabled=True)
+        individual.add_connection(conn2)
         return True
 
     def _del_node(self, individual: NEATIndividual) -> bool:
-        """ Delete a node by splitting an existing connection. """
+        """ Delete a random hidden node if possible. """
         node = individual.get_random_node()
         if node.type != "hidden":
             return False
@@ -139,4 +145,5 @@ class NEATMutator(SuccessiveMutator, NeuralNetworkMutator):
             return False
         conn = individual.get_random_connection()
         conn.switch()
+        individual.built_network = False
         return True

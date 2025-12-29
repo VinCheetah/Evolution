@@ -8,6 +8,7 @@ from typing import Callable, Optional, Any
 import random
 from evopy.individual.neural_network.base import NNIndividual
 from evopy.utils.graphs import creates_cycle, feed_forward_layers
+from evopy.utils.innovation import InnovationTracker
 
 
 class NEATGene:
@@ -43,6 +44,12 @@ class NEATGene:
 
     def __hash__(self):
         return hash(self._id)
+    
+    def __eq__(self, other):
+        """Two genes are equal if they have the same innovation number (ID)."""
+        if not isinstance(other, NEATGene):
+            return False
+        return self._id == other._id
 
 
 class NodeGene(NEATGene):
@@ -250,12 +257,27 @@ class NEATIndividual(NNIndividual):
     component_type: str = "Neat"
     input_ids: list[int] = ...
     output_ids: list[int] = ...
+    initial_connection_ids: dict[tuple[int, int], int] = {}  # Map (in_id, out_id) -> innovation_id
+    innovation_tracker: InnovationTracker = InnovationTracker()
 
     @classmethod
     def initialize(cls, options):
         super().initialize(options)
         cls.input_ids = NodeGene.id_generator(cls._input_size)
         cls.output_ids = NodeGene.id_generator(cls._output_size)
+        cls.innovation_tracker.reset(NodeGene._id_counter, ConnectionGene._id_counter)
+        
+        # Pre-assign innovation numbers for initial connections
+        cls.initial_connection_ids = {}
+        for in_id in cls.input_ids:
+            for out_id in cls.output_ids:
+                conn_id = cls.innovation_tracker.get_connection_id(in_id, out_id)
+                cls.initial_connection_ids[(in_id, out_id)] = conn_id
+
+        cls.innovation_tracker.sync_node_counter(NodeGene._id_counter)
+        cls.innovation_tracker.sync_connection_counter(ConnectionGene._id_counter)
+        ConnectionGene._id_counter = cls.innovation_tracker.next_connection_id
+        
         for attr, target in [("bias", NodeGene), ("response", NodeGene), ("weight", ConnectionGene)]:
             for params in ["_init_mean", "_init_std", "_max_value", "_min_value"]:
                 cls.transfer_options(attr+params, options, target=target, protected=False)
@@ -280,7 +302,12 @@ class NEATIndividual(NNIndividual):
 
         for in_node in self._input_nodes:
             for out_node in self._output_nodes:
-                self.link(in_node, out_node)
+                # Use pre-assigned innovation number for initial connections
+                conn_id = self.initial_connection_ids.get((in_node.id, out_node.id))
+                conn = ConnectionGene(in_node, out_node, weight=0.0, enabled=True, gene_id=conn_id)
+                if conn_id is not None:
+                    ConnectionGene._id_counter = max(ConnectionGene._id_counter, conn_id + 1)
+                self.add_connection(conn)
 
         self.built_network: bool = False
         self._network: FeedForwardNetwork = FeedForwardNetwork([], [], [])
@@ -325,18 +352,33 @@ class NEATIndividual(NNIndividual):
         elif node.type == "output":
             self._output_nodes.add(node)
         self._nodes.add(node)
-        #print(len(self._nodes))
+        self.built_network = False
 
-    def link(self, in_node: NodeGene, out_node: NodeGene):
-        weight = 0.
-        enabled = True
-        conn = ConnectionGene(in_node, out_node, weight, enabled)
+    def link(self, in_node: NodeGene, out_node: NodeGene) -> ConnectionGene:
+        conn = self._create_connection(in_node, out_node)
         self.add_connection(conn)
+        return conn
+
+    def _create_connection(self, in_node: NodeGene, out_node: NodeGene, *, weight: Optional[float] = None,
+                            enabled: Optional[bool] = None) -> ConnectionGene:
+        conn_id = self.__class__.innovation_tracker.get_connection_id(in_node.id, out_node.id)
+        ConnectionGene._id_counter = max(ConnectionGene._id_counter, conn_id + 1)
+        return ConnectionGene(in_node, out_node, weight=weight, enabled=enabled, gene_id=conn_id)
 
     def add_random_node(self, node_type=None, node_id=None):
         if node_type is None:
             node_type = random.choice(["input", "output", "hidden"])
         new_node = NodeGene(node_type=node_type, gene_id=node_id)
+        self.add_node(new_node)
+        return new_node
+
+    def create_split_node(self, connection: ConnectionGene) -> NodeGene:
+        tracker = self.__class__.innovation_tracker
+        node_id = tracker.get_split_node_id(connection.in_node.id, connection.out_node.id)
+        NodeGene._id_counter = max(NodeGene._id_counter, node_id + 1)
+        new_node = NodeGene(node_type="hidden", gene_id=node_id)
+        new_node.set_bias(0.0)
+        new_node.set_response(1.0)
         self.add_node(new_node)
         return new_node
 
@@ -346,13 +388,18 @@ class NEATIndividual(NNIndividual):
         elif node.type == "output":
             self._output_nodes.remove(node)
         self._nodes.remove(node)
+        dangling = [conn for conn in self._connections if conn.in_node == node or conn.out_node == node]
+        for conn in dangling:
+            self._connections.remove(conn)
+        self.built_network = False
 
     def add_connection(self, connection):
         self._connections.add(connection)
-        #print(len(self._connections))
+        self.built_network = False
 
     def remove_connection(self, connection):
         self._connections.remove(connection)
+        self.built_network = False
 
     def iter_connections(self):
         return iter(self._connections)

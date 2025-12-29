@@ -70,7 +70,7 @@ class Species:
             self.stagnant = False
         
     def select_new_representative(self) -> None:
-        """Select a new representative from current members."""
+        """Select a new representative from currentEliteSelector members."""
         if self.members:
             self.representative = rd.choice(self.members)
 

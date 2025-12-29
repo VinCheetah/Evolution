@@ -43,12 +43,16 @@ class NEATCrosser(NeuralNetworkCrosser):
                     cg2 = conn
 
             if cg1 and cg2:  # matching gene
-                chosen = random.choice([cg1, cg2]).copy()
+                chosen = random.choice([cg1, cg2])
                 child_connections.add(chosen.copy())
                 if not cg1.enabled or not cg2.enabled:
                     if random.random() < self._disable_inheritance_prob:
-                        if chosen.enabled:
-                            chosen.switch()
+                        # Get the copy we just added and modify it
+                        for child_conn in child_connections:
+                            if child_conn.id == chosen.id:
+                                if child_conn.enabled:
+                                    child_conn.switch()
+                                break
             elif cg1:  # disjoint/excess from fitter
                 child_connections.add(cg1.copy())
             elif cg2 and fitter.fitness == weaker.fitness:

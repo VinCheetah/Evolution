@@ -17,6 +17,7 @@ from evopy.selector import BaseSelector
 from evopy.mutator import BaseMutator
 from evopy.crosser import BaseCrosser
 from evopy.elite import BaseElite
+from evopy.reporter import BaseReporter
 
 
 class BaseEnvironment(BaseComponent):
@@ -54,7 +55,7 @@ class BaseEnvironment(BaseComponent):
     component_name: str = "Environment"
     component_type: str = "Base"
 
-    _components: list[str] = ["individual", "evaluator", "selector", "population", "crosser", "mutator", "elite"]
+    _components: list[str] = ["individual", "evaluator", "selector", "population", "crosser", "mutator", "elite", "reporter"]
     _activations: dict[str, bool] = {
         "individual": True,
         "crosser": True,
@@ -65,6 +66,7 @@ class BaseEnvironment(BaseComponent):
         "elite": True,
         "migration": True,
         "tracking": True,
+        "reporter": True,
     }
 
     @classmethod
@@ -106,6 +108,8 @@ class BaseEnvironment(BaseComponent):
         self.selector: BaseSelector = self._options.selector
         self.population: BasePopulation = self._options.population
         self.elite: BaseElite = self._options.elite
+        if self.is_active("reporter"):
+            self.reporter: BaseReporter = self._options.reporter
 
         self.check_requirements()
         self._init_components()
@@ -212,6 +216,10 @@ class BaseEnvironment(BaseComponent):
         self._evolution_over = False
         self._start_extra_time()
         self._start_time = time()
+        
+        # Reporter call
+        if self.is_active("reporter"):
+            self.reporter.start_evolution_report(self.population)
 
     def end_evolution(self):
         """End the evolution"""
@@ -219,6 +227,10 @@ class BaseEnvironment(BaseComponent):
         self._evolution_over = True
         self._stop_time = time()
         self._evo_time += self._stop_time - self._start_time
+
+        # Reporter call
+        if self.is_active("reporter"):
+            self.reporter.end_evolution_report(self.population, self._n_gen)
 
         self.log("info", "Evolution is finished")
         self.log("info", f"Total time: {self._evo_time:.2f}s")
@@ -297,6 +309,10 @@ class BaseEnvironment(BaseComponent):
         if self._reproducing:
             self._update_param_process()
         self._update_evolution_param()
+        
+        # Reporter call
+        if self.is_active("reporter"):
+            self.reporter.new_generation_report(self.population, self._n_gen)
 
     @BaseComponent.record_time
     def new_generation(self):
@@ -320,6 +336,10 @@ class BaseEnvironment(BaseComponent):
         self.new_generation()
         self._start_extra_time()
         self.log_report()
+        
+        # Reporter call - end of generation
+        if self.is_active("reporter"):
+            self.reporter.end_generation_report(self.population, self._n_gen)
 
     def get_report(self):
         """Get the report"""
@@ -378,8 +398,18 @@ class BaseEnvironment(BaseComponent):
     def select(self):
         """Select the population"""
         if self.is_active("selector"):
+            # Reporter call - before selection
+            if self.is_active("reporter"):
+                self.reporter.pre_selection_report(self.population, self._n_gen)
+                
             self.log("info", "Selection process begins")
+            selected_before = list(self.population.get_population())
             self.selector.select(self.population)
+            
+            # Reporter call - after selection
+            if self.is_active("reporter"):
+                selected_individuals = [ind for ind in self.population.get_population() if ind not in selected_before]
+                self.reporter.post_selection_report(selected_individuals, self._n_gen)
 
     def migrate(self):
         """Migrate the population"""
@@ -390,19 +420,49 @@ class BaseEnvironment(BaseComponent):
     def mutate(self):
         """Mutate the population"""
         if self.is_active("mutator"):
+            # Reporter call - before mutation
+            if self.is_active("reporter"):
+                self.reporter.pre_mutation_report(list(self.population.get_population()), self._n_gen)
+                
             self.log("info", "Mutation process begins")
             self.mutator.mutate(self.population)
+            
+            # Reporter call - after mutation
+            if self.is_active("reporter"):
+                self.reporter.post_mutation_report(list(self.population.get_population()), self._n_gen)
 
     def cross(self):
         """Cross the population"""
         if self.is_active("crosser"):
+            # Reporter call - before crossover
+            if self.is_active("reporter"):
+                parents = list(self.population.get_population())
+                self.reporter.pre_crossover_report(parents, self._n_gen)
+                
             self.log("info", "Crossover process begins")
+            offspring_before = self.population.size
             self.crosser.cross(self.population)
+            
+            # Reporter call - after crossover
+            if self.is_active("reporter"):
+                current_pop = list(self.population.get_population())
+                offspring = current_pop[offspring_before:] if len(current_pop) > offspring_before else []
+                self.reporter.post_crossover_report(offspring, self._n_gen)
 
     def evaluate(self):
         """Evaluate the population"""
+        # Reporter call - before evaluation
+        if self.is_active("reporter"):
+            unevaluated = [ind for ind in self.population.get_population() if not hasattr(ind, 'fitness') or ind.fitness is None]
+            self.reporter.pre_evaluation_report(unevaluated, self._n_gen)
+            
         self.log("info", "Evaluation process begins")
         self.evaluator.evaluate(self.population)
+        
+        # Reporter call - after evaluation
+        if self.is_active("reporter"):
+            self.reporter.post_evaluation_report(self.population, self._n_gen)
+            self.reporter.population_stats_report(self.population, self._n_gen)
 
     @property
     def time_since_start(self):

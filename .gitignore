@@ -8,10 +8,10 @@ evo_records/
 evo_test.ipynb
 1.0.0/
 GeneticSalesMan/
-SalesMan2/
-Separator/
+EvopyTest/SalesMan2/
+EvopyTest/Separator/
 evo.log
 test.py
 base/utils/default_options.py
-Function
+EvopyTest/Function
 

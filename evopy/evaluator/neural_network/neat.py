@@ -12,6 +12,8 @@ class NEATEvaluator(NNEvaluator):
     def __init__(self, options):
         super().__init__(options)
         self.neat_function = options.neat_function
+        if not callable(self.neat_function):
+            raise ValueError("NEATEvaluator requires a callable 'neat_function' option.")
 
     def _evaluate(self, individual: NEATIndividual) -> float:
         network = individual.network

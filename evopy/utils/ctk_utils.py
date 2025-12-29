@@ -1,7 +1,7 @@
 import tkinter
 
 import customtkinter as CTk
-from typing import Union, Callable, Any, get_origin, get_args
+from typing import Union, Callable, Any, get_origin, get_args, Optional
 from inspect import isclass
 from math import inf
 
@@ -87,37 +87,73 @@ def is_optional(tp):
     return get_origin(tp) is Union and type(None) in get_args(tp)
 
 
+class BaseOptionWidget:
+    """Base class for all option input widgets."""
+    
+    def __init__(self, command: Optional[Callable] = None):
+        self.command = command
+        self._value = None
+    
+    def get(self):
+        """Get the current value."""
+        return self._value
+    
+    def set(self, value):
+        """Set the value and trigger command if set."""
+        self._value = value
+        if self.command:
+            self.command()
+    
+    def validate(self) -> bool:
+        """Validate the current value. Override in subclasses."""
+        return True
+    
+    def bind_command(self, command: Optional[Callable]):
+        """Bind a command to value changes."""
+        self.command = command
 
-class Spinbox(CTk.CTkFrame):
-    def __init__(self, *args,
-                 width: int = 100,
-                 height: int = 32,
-                 step_size: Union[int, float] = 1,
-                 default_value: Union[int, float] = 0,
-                 command: Callable = None,
-                 **kwargs):
-        super().__init__(*args, width=width, height=height)
+
+
+class Spinbox(CTk.CTkFrame, BaseOptionWidget):
+    def __init__(self, master, width: int = 100, height: int = 32, step_size: Union[int, float] = 1, default_value: Union[int, float] = 0, command: Optional[Callable] = None, **kwargs):
+        CTk.CTkFrame.__init__(self, master, width=width, height=height, **kwargs)
+        BaseOptionWidget.__init__(self, command)
 
         self.step_size = step_size
-        self.command = command
 
         self.configure(fg_color=("gray78", "gray28"))  # set frame color
 
         self.grid_columnconfigure((0, 2), weight=0)  # buttons don't expand
         self.grid_columnconfigure(1, weight=1)  # entry expands
 
-        self.subtract_button = CTk.CTkButton(self, text="-", width=height-6, height=height-6,
-                                                       command=self.subtract_button_callback)
+        self.subtract_button = CTk.CTkButton(self, text="-", width=height-6, height=height-6, command=self.subtract_button_callback)
         self.subtract_button.grid(row=0, column=0, padx=(3, 0), pady=3)
 
         self.text = CTk.StringVar(value=str(default_value))
         self.entry = CTk.CTkEntry(self, width=width-(2*height), height=height-6, border_width=0, textvariable=self.text)
         self.entry.grid(row=0, column=1, columnspan=1, padx=3, pady=3, sticky="ew")
-        self.entry.bind("<ButtonRelease-1>", self.command)
-        self.text.trace_add("write", lambda *_: self.command())
-        self.add_button = CTk.CTkButton(self, text="+", width=height-6, height=height-6,
-                                                  command=self.add_button_callback)
+        self.text.trace_add("write", lambda *_: self._update_value())
+        
+        self.add_button = CTk.CTkButton(self, text="+", width=height-6, height=height-6, command=self.add_button_callback)
         self.add_button.grid(row=0, column=2, padx=(0, 3), pady=3)
+
+        self._value = default_value
+
+    def _update_value(self):
+        try:
+            self._value = self._get()
+        except ValueError:
+            self._value = None
+        if self.command:
+            self.command()
+
+    def _get(self) -> Union[float, int, None]:
+        return float(self.entry.get())
+    
+    def set(self, value):
+        self.entry.delete(0, "end")
+        self.entry.insert(0, str(value))
+        super().set(value)
 
         
     def _get(self) -> Union[float, int, None]:
@@ -136,7 +172,10 @@ class Spinbox(CTk.CTkFrame):
             return None
         
     def _left_transform(self) -> Union[float, int, None]:
-        return self.get() - self.step_size
+        val = self.get()
+        if val is None:
+            return None
+        return val - self.step_size
     
     def right_transform(self) -> Union[float, int, None]:
         try:
@@ -145,11 +184,16 @@ class Spinbox(CTk.CTkFrame):
             return None
         
     def _right_transform(self) -> Union[float, int, None]:
-        return self.get() + self.step_size
+        val = self.get()
+        if val is None:
+            return None
+        return val + self.step_size
 
     def add_button_callback(self):
         try:
-            self.set(self.right_transform())
+            val = self.right_transform()
+            if val is not None:
+                self.set(val)
         except ValueError:
             pass
         if self.command is not None:
@@ -157,7 +201,9 @@ class Spinbox(CTk.CTkFrame):
 
     def subtract_button_callback(self):
         try:
-            self.set(self.left_transform())
+            val = self.left_transform()
+            if val is not None:
+                self.set(val)
         except ValueError:
             pass
         if self.command is not None:
@@ -172,28 +218,40 @@ class Spinbox(CTk.CTkFrame):
 class IntSpinbox(Spinbox):
     
     def _get(self) -> int:
-        return int(super()._get())
+        val = super()._get()
+        if val is None:
+            return 0
+        return int(val)
     
 class FloatSpinbox(Spinbox):
 
-    def __init__(self, *args, step_size=0.1, **kwargs) -> None:
-        super().__init__(*args, step_size=step_size, **kwargs)
+    def __init__(self, master, step_size=0.1, **kwargs) -> None:
+        super().__init__(master, step_size=step_size, **kwargs)
     
     def _get(self) -> float:
-        return round(float(super()._get()), 5)
+        val = super()._get()
+        if val is None:
+            return 0.0
+        return round(float(val), 5)
     
 class BoundedSpinbox(Spinbox):
     
-    def __init__(self, *args, width = 100, height = 32, step_size = 1, default_value = 0, command = None, min_value=-inf, max_value=inf, **kwargs):
-        super().__init__(*args, width=width, height=height, step_size=step_size, default_value=default_value, command=command, **kwargs)
+    def __init__(self, master, width = 100, height = 32, step_size: Union[int, float] = 1, default_value = 0, command = None, min_value=-inf, max_value=inf, **kwargs):
+        super().__init__(master, width=width, height=height, step_size=step_size, default_value=default_value, command=command, **kwargs)
         self.min_value = min_value
         self.max_value = max_value
         
     def _left_transform(self) -> Union[float, int, None]:
-        return max(self.min_value, self.get() - self.step_size)
+        val = self.get()
+        if val is None:
+            return None
+        return max(self.min_value, val - self.step_size)
     
     def _right_transform(self) -> Union[float, int, None]:
-        return min(self.max_value, self.get() + self.step_size)
+        val = self.get()
+        if val is None:
+            return None
+        return min(self.max_value, val + self.step_size)
 
     def set(self, value: Union[float, int]):
         value = max(min(value, self.max_value), self.min_value)
@@ -201,19 +259,21 @@ class BoundedSpinbox(Spinbox):
     
 class BoundedIntSpinbox(BoundedSpinbox, IntSpinbox):
     
-    def __init__(self, *args, width=100, height=32, step_size=1, default_value=0, command=None, min_value=-inf, max_value=inf, **kwargs):
-        super().__init__(*args, width=width, height=height, step_size=step_size, default_value=default_value, command=command, min_value=min_value, max_value=max_value, **kwargs)
+    def __init__(self, master, width=100, height=32, step_size=1, default_value=0, command=None, min_value=-inf, max_value=inf, **kwargs):
+        super().__init__(master, width=width, height=height, step_size=step_size, default_value=default_value, command=command, min_value=min_value, max_value=max_value, **kwargs)
     
 class BoundedFloatSpinbox(BoundedSpinbox, FloatSpinbox):
 
-    def __init__(self, *args, step_size=0.1, **kwargs):
-        super().__init__(*args, step_size=step_size, **kwargs)
+    def __init__(self, master, step_size=0.1, **kwargs):
+        super().__init__(master, step_size=step_size, **kwargs)
         
     
 class BoolSwitch(CTk.CTkSwitch):
 
-    def __init__(self, *args, default_value=False, onvalue=True, offvalue=False, **kwargs) -> None:
-        super().__init__(*args, text="", switch_width=60, switch_height=20, onvalue=onvalue, offvalue=offvalue)
+    def __init__(self, *args, default_value=False, onvalue=True, offvalue=False, command=None, **kwargs) -> None:
+        super().__init__(*args, text="", switch_width=60, switch_height=20, onvalue=onvalue, offvalue=offvalue, command=command, **kwargs)
+        self.onvalue = onvalue
+        self.offvalue = offvalue
         self.set(default_value)
 
     def set(self, value: bool):
@@ -222,76 +282,105 @@ class BoolSwitch(CTk.CTkSwitch):
         else:
             self.deselect()
 
-class ChoicesBox(CTk.CTkComboBox):
+    def get(self):
+        return super().get() == self.onvalue
 
-    def __init__(self, *args, values=None, **kwargs) -> None:
+
+class ChoicesBox(CTk.CTkComboBox, BaseOptionWidget):
+    def __init__(self, master, values: Optional[list] = None, command: Optional[Callable] = None, **kwargs) -> None:
+        values = values or []
         self.to_display = lambda x: to_str(x)
         self.values_dict = {to_str(v): v for v in values} | {"None": None}
-        super().__init__(*args, values=list(map(self.to_display, values)),  width=250, button_color="#444", state="readonly")
+        CTk.CTkComboBox.__init__(self, master, values=list(map(self.to_display, values)), width=250, button_color="#444", state="readonly", command=self._on_change, **kwargs)
+        BaseOptionWidget.__init__(self, command)
+        self._value = None
+
+    def _on_change(self, value):
+        self._value = self.values_dict.get(value, None)
+        if self.command:
+            self.command()
 
     def get(self):
-        return self.values_dict[super().get()]
+        return self._value
 
     def set(self, value):
+        self._value = value
         super().set(to_str(value))
 
-class StringEntry(CTk.CTkEntry):
-    def __init__(self, *args, default_value=None, command=None, **kwargs) -> None:
-        self.command = command
-        self.text = CTk.StringVar(value=default_value)
+class MultiSelectBox(CTk.CTkFrame, BaseOptionWidget):
+    """A beautiful multi-select box for choosing a sublist from a list."""
+    def __init__(self, master, values: Optional[list] = None, default_selected: Optional[list] = None, command: Optional[Callable] = None, width=250, height=120, **kwargs):
+        CTk.CTkFrame.__init__(self, master, width=width, height=height, fg_color=("gray78", "gray28"), **kwargs)
+        BaseOptionWidget.__init__(self, command)
+        self.values = values or []
+        self.selected = set(default_selected or [])
+        self.check_vars = {}
+        self.scrollable = CTk.CTkScrollableFrame(self, width=width, height=height)
+        self.scrollable.pack(fill="both", expand=True)
+        for i, val in enumerate(self.values):
+            var = CTk.BooleanVar(value=val in self.selected)
+            chk = CTk.CTkCheckBox(self.scrollable, text=to_str(val), variable=var, command=self._on_change)
+            chk.pack(anchor="w", padx=8, pady=2)
+            self.check_vars[val] = var
+        self._value = list(self.selected)
 
-        if self.command is not None:
-            self.text.trace_add("write", lambda *_: self.command())
-
-        super().__init__(*args, width=250, height=28,
-                         textvariable=self.text, font=("Segoe UI", 11),
-                         )
-
-        self.bind("<Return>", lambda event: self.command() if self.command else None)
-
-    def set(self, value: str):
-        """Set the entry text programmatically."""
-        self.text.set(value)
-
-    def disable(self):
-        self.configure(state="disabled", fg_color="gray30",  bg_color= "lightgray")
-
-    def enable(self):
-        self.configure(state="normal", fg_color="white", bg_color = "black")
-
-    def switch(self):
-        if self._state == "disabled":
-            self.enable()
-        else:
-            self.disable()
-
-class CodeEntry(CTk.CTkEntry):
-    def __init__(self, *args, default_value=None, command=None, **kwargs) -> None:
-        self.command = command
-        print(dict_to_str(default_value))
-        self.text = CTk.StringVar(value=dict_to_str(default_value))
-
-        if self.command is not None:
-            self.text.trace_add("write", lambda *_: self.command())
-
-        super().__init__(*args, width=250, height=28,
-                         textvariable=self.text, font=("Segoe UI", 11))
-
-        self.bind("<Return>", lambda event: self.command() if self.command else None)
-
-    def set(self, value: str):
-        """Set the entry text programmatically."""
-        self.text.set(dict_to_str(value))
+    def _on_change(self):
+        self.selected = {v for v, var in self.check_vars.items() if var.get()}
+        self._value = list(self.selected)
+        if self.command:
+            self.command()
 
     def get(self):
-        """Get the entry text programmatically."""
-        try:
-            value = eval(self.text.get())
-        except:
-            value = None
-        return value
+        return self._value
 
-class Optional:
+    def set(self, value):
+        self._value = list(value) if isinstance(value, (list, set)) else [value]
+        self.selected = set(value) if isinstance(value, (list, set)) else {value}
+        for v, var in self.check_vars.items():
+            var.set(v in self.selected)
+
+class StringEntry(CTk.CTkEntry, BaseOptionWidget):
+    def __init__(self, master, default_value=None, command: Optional[Callable] = None, **kwargs) -> None:
+        self.text = CTk.StringVar(value=default_value)
+        CTk.CTkEntry.__init__(self, master, textvariable=self.text, width=250, height=28, font=("Segoe UI", 11), **kwargs)
+        BaseOptionWidget.__init__(self, command)
+        self.text.trace_add("write", lambda *_: self._update_value())
+        self._value = default_value
+
+    def _update_value(self):
+        self._value = self.text.get()
+        if self.command:
+            self.command()
+
+    def set(self, value: str):
+        self.text.set(value)
+        super().set(value)
+
+class CodeEntry(CTk.CTkEntry, BaseOptionWidget):
+    def __init__(self, master, default_value=None, command: Optional[Callable] = None, **kwargs) -> None:
+        print(dict_to_str(default_value))
+        self.text = CTk.StringVar(value=dict_to_str(default_value))
+        CTk.CTkEntry.__init__(self, master, textvariable=self.text, width=250, height=28, font=("Segoe UI", 11), **kwargs)
+        BaseOptionWidget.__init__(self, command)
+        self.text.trace_add("write", lambda *_: self._update_value())
+        self._value = default_value
+
+    def _update_value(self):
+        try:
+            self._value = eval(self.text.get())
+        except:
+            self._value = None
+        if self.command:
+            self.command()
+
+    def set(self, value):
+        self.text.set(dict_to_str(value))
+        super().set(value)
+
+    def get(self):
+        return self._value
+
+class OptionalControl:
 
     def __init__(self, value_entry):
         self.value_entry = value_entry
@@ -388,22 +477,30 @@ class ParameterWidget(CTk.CTkFrame):
         #self.choices = choices
         self.is_optional = is_optional(parameter_name)
         self.visible: bool = current_value is not None
+        self.saved_value = current_value  # Track the last saved value
 
+        # Filter out keys that are handled separately
+        extra_copy = {k: v for k, v in extra.items() if k not in ['command', 'choices']}
+        
         if "choices" in extra and extra["choices"] is not None:
-            self.value_input = ChoicesBox(self, values=extra["choices"], command=self.validate_input, **extra)
+            # If 'multi' is set in extra, use MultiSelectBox for sublist selection
+            if extra.get("multi", False):
+                self.value_input = MultiSelectBox(self, values=extra["choices"], default_selected=self.current_value, command=self.validate_input, **extra_copy)
+            else:
+                self.value_input = ChoicesBox(self, values=extra["choices"], command=self.validate_input, **extra_copy)
         elif self.param_type == int:
             spinbox = BoundedIntSpinbox if "min_value" in extra or "max_value" in extra else IntSpinbox
-            self.value_input = spinbox(self, default_value=self.current_value, command=self.validate_input, **extra)
+            self.value_input = spinbox(self, default_value=self.current_value, command=self.validate_input, **extra_copy)
         elif self.param_type == float:
             spinbox = BoundedFloatSpinbox if "min_value" in extra or "max_value" in extra else FloatSpinbox
-            self.value_input = spinbox(self, default_value=self.current_value, command=self.validate_input, **extra)
+            self.value_input = spinbox(self, default_value=self.current_value, command=self.validate_input, **extra_copy)
         elif self.param_type == bool:
-            self.value_input = BoolSwitch(self, default_value=self.current_value, command=self.validate_input, **extra)
+            self.value_input = BoolSwitch(self, default_value=self.current_value, command=self.validate_input, **extra_copy)
         elif self.param_type == str:
-            self.value_input = StringEntry(self, default_value=self.current_value, command=self.validate_input, **extra)
+            self.value_input = StringEntry(self, default_value=self.current_value, command=self.validate_input, **extra_copy)
         else:
             print(f"Invalid parameter type {self.param_type}")
-            self.value_input = CodeEntry(self, default_value=self.current_value, command=self.validate_input, **extra)
+            self.value_input = CodeEntry(self, default_value=self.current_value, command=self.validate_input, **extra_copy)
 
         self.status = None
 
@@ -422,7 +519,7 @@ class ParameterWidget(CTk.CTkFrame):
 
         if is_optional(param_type):
             self.grid_columnconfigure(2, minsize=60)
-            self.optional = BoolSwitch(self, default_value=False, command=lambda: self.switch_entry_visibility(), onvalue="normal", offvalue="disabled")
+            self.optional = BoolSwitch(self, default_value=self.visible, command=self.switch_entry_visibility, onvalue=True, offvalue=False)
             self.optional.grid(row=0, column=2, padx=5, pady=5, sticky="w")
 
         self.value_input.grid(row=0, column=3, padx=5, pady=5, sticky="ew")
@@ -434,15 +531,20 @@ class ParameterWidget(CTk.CTkFrame):
         self.status_label.grid(row=0, column=5, padx=(5, 10), pady=5)
 
         self.configure(height=36)
+        if is_optional(param_type):
+            self.switch_entry_visibility()  # Set initial visibility after all widgets created
         self.restore_to_default()
 
     def switch_entry_visibility(self):
+        self.visible = self.optional.get()
         if self.visible:
-            self.visible = False
-            self.value_input.grid_forget()
-        else:
-            self.visible = True
+            if self.current_value is None:
+                self.value_input.set(self.default_value)
             self.value_input.grid(row=0, column=3, padx=5, pady=5, sticky="ew")
+        else:
+            self.current_value = None
+            self.validate_input()
+            self.value_input.grid_forget()
 
 
     def restore_to_default(self):
@@ -452,16 +554,22 @@ class ParameterWidget(CTk.CTkFrame):
 
     def validate_input(self, event=None):
         """Validate and update parameter state."""
-        value = self.value_input.get()
+        value = None if self.switch_off() else self.value_input.get()
         if self.param_type is None or isinstance_or_subclass(value, self.param_type): # Add validation in the value input to check with extras (ex int > 0)
             self.current_value = value
-            self.status = "Modified" if self.current_value != self.default_value else "Default"
+            if self.current_value == self.default_value:
+                self.status = "Default"
+            elif self.current_value == self.saved_value:
+                self.status = "Saved"
+            else:
+                self.status = "Modified"
         else:
             self.status = "Invalid"
         self.update_status_label()
 
     def save_value(self):
         if self.status == "Modified":
+            self.saved_value = self.current_value
             self.status = "Saved"
             self.update_status_label()
             return True

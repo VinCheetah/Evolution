@@ -9,6 +9,7 @@ from evopy.population import BasePopulation
 from evopy.elite import BaseElite
 from evopy.graphic import BaseGraphic
 from evopy.interface.base import BaseInterface
+from evopy.reporter import BaseReporter
 from evopy.utils.evo_types import Random, Randomized
 from evopy.utils.activations import relu_activation
 from evopy.utils.aggregations import sum_aggregation
@@ -26,6 +27,7 @@ default = {
     "crosser": BaseCrosser,
     "graphic": BaseGraphic,
     "interface": BaseInterface,
+    "reporter": BaseReporter,
     "evolution_record": None,
     "reproducing": False,
     "from_beginning": False,
@@ -145,6 +147,13 @@ default = {
 
     # Interface
     "active_interface": True,
+
+    # Reporter
+    "active_reporter": True,
+    "reporter_periodic_display": 10,  # Affichage toutes les N générations
+    "reporter_collect_statistics": True,
+    "reporter_track_diversity": False,
+    "reporter_verbose": False,  # Mode verbose pour plus de détails
 
     # Reproduction
     "tracking": False,
